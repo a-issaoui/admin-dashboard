@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
     dangerouslyAllowSVG: true,
   },
-  turbopack: {},
   experimental: {
     optimizePackageImports: [
       '@phosphor-icons/react',
@@ -25,21 +24,15 @@ const nextConfig: NextConfig = {
       '@radix-ui/react-tooltip',
     ],
   },
-  webpack: null,
 };
 
 const bundleAnalyzerPlugin = withBundleAnalyzer({
   enabled: isAnalyze,
 });
 
-// Apply plugins and ensure deprecated turbo property is not set
+// Apply plugins
 const configWithPlugins = isAnalyze
     ? bundleAnalyzerPlugin(withNextIntl(nextConfig))
     : withNextIntl(nextConfig);
-
-// Clean up any deprecated experimental.turbo property that plugins might have added
-if (configWithPlugins.experimental?.turbo) {
-  delete configWithPlugins.experimental.turbo;
-}
 
 export default configWithPlugins;

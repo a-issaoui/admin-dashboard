@@ -1,71 +1,76 @@
 // ============================================================================
-// src/app/layout.tsx - Root layout (UPDATED)
+// src/app/layout.tsx - Root layout (FIXED)
 // ============================================================================
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getLocale } from 'next-intl/server';
+import { getMessages } from 'next-intl/server';
+import { headers } from 'next/headers';
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { StoreProvider } from "@/providers/store-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+    variable: "--font-geist-sans",
+    subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+    variable: "--font-geist-mono",
+    subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "École Ennour - Admin Dashboard",
-  description: "Modern admin dashboard with RTL support for École Ennour",
+    title: "École Ennour - Admin Dashboard",
+    description: "Modern admin dashboard with RTL support for École Ennour",
 };
 
 export default async function RootLayout({
-                                           children,
+                                             children,
                                          }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
-  const locale = await getLocale();
-  const messages = await getMessages();
+    // Get locale from headers (set by middleware)
+    const headersList = await headers()
+    const locale = headersList.get('x-locale') || 'en'
 
-  // Get direction for RTL support
-  const direction = locale === 'ar' ? 'rtl' : 'ltr';
+    // Get messages for the current locale
+    const messages = await getMessages();
 
-  return (
-      <html
-          lang={locale}
-          dir={direction}
-          suppressHydrationWarning
-      >
-      <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          data-locale={locale}
-          data-direction={direction}
-      >
-      <NextIntlClientProvider locale={locale} messages={messages}>
-        <StoreProvider>
-          <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-          >
-            {children}
-            <Toaster
-                position="top-center"
-                closeButton
-                richColors
-            />
-          </ThemeProvider>
-        </StoreProvider>
-      </NextIntlClientProvider>
-      </body>
-      </html>
-  );
+    // Get direction for RTL support
+    const direction = locale === 'ar' ? 'rtl' : 'ltr';
+
+    return (
+        <html
+            lang={locale}
+            dir={direction}
+            suppressHydrationWarning
+        >
+        <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+            data-locale={locale}
+            data-direction={direction}
+        >
+        <NextIntlClientProvider locale={locale} messages={messages}>
+            <StoreProvider>
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    {children}
+                    <Toaster
+                        position="top-center"
+                        closeButton
+                        richColors
+                    />
+                </ThemeProvider>
+            </StoreProvider>
+        </NextIntlClientProvider>
+        </body>
+        </html>
+    );
 }
