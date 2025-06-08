@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { setCookie, getCookie } from 'cookies-next'
+import { setCookie } from 'cookies-next'
 import type { LocaleCode, LocaleConfig, LocaleState } from '@/types/locale'
 
 const LOCALES: LocaleConfig[] = [

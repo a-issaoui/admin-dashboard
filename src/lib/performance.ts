@@ -1,5 +1,7 @@
 // Performance monitoring utilities
 
+import * as React from 'react'
+
 export function measurePerformance<T>(
     fn: () => T,
     label: string
@@ -14,7 +16,7 @@ export function measurePerformance<T>(
     return result
 }
 
-export function withPerformanceMonitoring<T extends (...args: any[]) => any>(
+export function withPerformanceMonitoring<T extends (...args: unknown[]) => unknown>(
     fn: T,
     label: string
 ): T {
@@ -24,7 +26,7 @@ export function withPerformanceMonitoring<T extends (...args: any[]) => any>(
 }
 
 // Lazy loading utilities
-export function createLazyComponent<T extends React.ComponentType<any>>(
+export function createLazyComponent<T extends React.ComponentType<unknown>>(
     factory: () => Promise<{ default: T }>,
     fallback?: React.ComponentType
 ) {

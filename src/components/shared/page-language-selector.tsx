@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useLocaleStore } from '@/lib/stores'
 import { cn } from '@/lib/utils'
+import type { LocaleCode } from '@/types/locale'
 
 export function PageLanguageSelector() {
     const t = useTranslations('locale')
@@ -21,9 +22,9 @@ export function PageLanguageSelector() {
 
     const currentLocale = locales.find(l => l.code === current)
 
-    const handleLocaleChange = React.useCallback(async (newLocale: string) => {
+    const handleLocaleChange = React.useCallback(async (newLocale: LocaleCode) => {
         try {
-            await setLocale(newLocale as any)
+            await setLocale(newLocale)
             // Smooth transition instead of hard reload
             router.refresh()
         } catch (error) {

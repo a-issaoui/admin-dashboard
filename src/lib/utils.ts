@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { SidebarData } from '@/types/SidebarData'
+import type { SidebarData } from '@/types/sidebar'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -9,29 +9,32 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Enhanced utility to create sidebar data with auto-generated IDs and validation
  */
-export function createSidebarData(rawData: any[]): SidebarData {
+export function createSidebarData(rawData: unknown[]): SidebarData {
   return rawData.map((group, groupIndex) => {
+    // Type assertion for processing
+    const groupData = group as Record<string, unknown>
+
     // Generate group ID if not provided
-    const groupId = group.id || `group-${groupIndex}-${slugify(group.title || 'untitled')}`
+    const groupId = (groupData.id as string) || `group-${groupIndex}-${slugify((groupData.title as string) || 'untitled')}`
 
     return {
-      ...group,
+      ...groupData,
       id: groupId,
-      menu: group.menu.map((menu: any, menuIndex: number) => {
+      menu: (groupData.menu as Record<string, unknown>[]).map((menu: Record<string, unknown>, menuIndex: number) => {
         // Generate menu ID if not provided
-        const menuId = menu.id || `${groupId}-menu-${menuIndex}-${slugify(menu.title)}`
+        const menuId = (menu.id as string) || `${groupId}-menu-${menuIndex}-${slugify(menu.title as string)}`
 
         return {
           ...menu,
           id: menuId,
-          submenu: menu.submenu?.map((sub: any, subIndex: number) => ({
+          submenu: (menu.submenu as Record<string, unknown>[])?.map((sub: Record<string, unknown>, subIndex: number) => ({
             ...sub,
-            id: sub.id || `${menuId}-sub-${subIndex}-${slugify(sub.title)}`
+            id: (sub.id as string) || `${menuId}-sub-${subIndex}-${slugify(sub.title as string)}`
           }))
         }
       })
     }
-  })
+  }) as SidebarData
 }
 
 /**
@@ -48,7 +51,7 @@ export function slugify(text: string): string {
 /**
  * Debounce function for performance optimization
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
     func: T,
     delay: number
 ): (...args: Parameters<T>) => void {
@@ -63,7 +66,7 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * Throttle function for performance optimization
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
     func: T,
     limit: number
 ): (...args: Parameters<T>) => void {
@@ -81,7 +84,7 @@ export function throttle<T extends (...args: any[]) => any>(
 /**
  * Deep merge two objects
  */
-export function deepMerge<T extends Record<string, any>>(
+export function deepMerge<T extends Record<string, unknown>>(
     target: T,
     source: Partial<T>
 ): T {
@@ -89,7 +92,7 @@ export function deepMerge<T extends Record<string, any>>(
 
   for (const key in source) {
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      result[key] = deepMerge(result[key] || {}, source[key]!)
+      result[key] = deepMerge((result[key] as Record<string, unknown>) || {}, source[key] as Record<string, unknown>) as T[Extract<keyof T, string>]
     } else {
       result[key] = source[key]!
     }
@@ -114,7 +117,7 @@ export function formatNumber(num: number): string {
 /**
  * Validate sidebar data structure
  */
-export function validateSidebarData(data: any): { isValid: boolean; errors: string[] } {
+export function validateSidebarData(data: unknown): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
 
   if (!Array.isArray(data)) {
@@ -128,18 +131,20 @@ export function validateSidebarData(data: any): { isValid: boolean; errors: stri
       return
     }
 
-    if (!Array.isArray(group.menu)) {
+    const groupData = group as Record<string, unknown>
+
+    if (!Array.isArray(groupData.menu)) {
       errors.push(`Group at index ${groupIndex} must have a menu array`)
       return
     }
 
-    group.menu.forEach((menu: any, menuIndex: number) => {
+    (groupData.menu as Record<string, unknown>[]).forEach((menu: Record<string, unknown>, menuIndex: number) => {
       if (typeof menu !== 'object' || menu === null) {
         errors.push(`Menu item at group ${groupIndex}, menu ${menuIndex} must be an object`)
         return
       }
 
-      if (typeof menu.title !== 'string' || menu.title.trim() === '') {
+      if (typeof menu.title !== 'string' || (menu.title as string).trim() === '') {
         errors.push(`Menu item at group ${groupIndex}, menu ${menuIndex} must have a non-empty title`)
       }
 
@@ -148,17 +153,17 @@ export function validateSidebarData(data: any): { isValid: boolean; errors: stri
       }
 
       if (menu.submenu) {
-        menu.submenu.forEach((sub: any, subIndex: number) => {
+        (menu.submenu as Record<string, unknown>[]).forEach((sub: Record<string, unknown>, subIndex: number) => {
           if (typeof sub !== 'object' || sub === null) {
             errors.push(`Submenu item at group ${groupIndex}, menu ${menuIndex}, sub ${subIndex} must be an object`)
             return
           }
 
-          if (typeof sub.title !== 'string' || sub.title.trim() === '') {
+          if (typeof sub.title !== 'string' || (sub.title as string).trim() === '') {
             errors.push(`Submenu item at group ${groupIndex}, menu ${menuIndex}, sub ${subIndex} must have a non-empty title`)
           }
 
-          if (typeof sub.url !== 'string' || sub.url.trim() === '') {
+          if (typeof sub.url !== 'string' || (sub.url as string).trim() === '') {
             errors.push(`Submenu item at group ${groupIndex}, menu ${menuIndex}, sub ${subIndex} must have a non-empty URL`)
           }
         })
@@ -193,7 +198,7 @@ export function prefersReducedMotion(): boolean {
  * Safe localStorage access with error handling
  */
 export const storage = {
-  get: (key: string, defaultValue: any = null) => {
+  get: (key: string, defaultValue: unknown = null) => {
     if (typeof window === 'undefined') return defaultValue
 
     try {
@@ -205,7 +210,7 @@ export const storage = {
     }
   },
 
-  set: (key: string, value: any) => {
+  set: (key: string, value: unknown) => {
     if (typeof window === 'undefined') return false
 
     try {

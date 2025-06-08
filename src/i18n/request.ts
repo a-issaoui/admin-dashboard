@@ -1,22 +1,19 @@
 // ============================================================================
-// src/i18n/request.ts - Server-side i18n setup (FIXED)
+// src/i18n/request.ts - Server-side i18n setup
 // ============================================================================
 
 import { getRequestConfig } from 'next-intl/server'
-import { headers } from 'next/headers'
-import { DEFAULT_LOCALE, LOCALES } from './config'
+import { cookies } from 'next/headers'
+import { DEFAULT_LOCALE } from './config'
+import type { LocaleCode } from '@/types/locale'
 
 export default getRequestConfig(async () => {
-    // Get locale from headers (set by middleware)
-    const headersList = await headers()
-    const locale = headersList.get('x-locale') || DEFAULT_LOCALE
-
-    // Validate locale
-    const validLocale = LOCALES.includes(locale as any) ? locale : DEFAULT_LOCALE
+    const cookieStore = await cookies()
+    const locale = (cookieStore.get('locale')?.value as LocaleCode) || DEFAULT_LOCALE
 
     return {
-        locale: validLocale,
-        messages: (await import(`./messages/${validLocale}.json`)).default,
+        locale,
+        messages: (await import(`./messages/${locale}.json`)).default,
         timeZone: 'Africa/Tunis', // Tunisia timezone
         now: new Date()
     }

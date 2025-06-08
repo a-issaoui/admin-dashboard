@@ -21,11 +21,10 @@ import type { SidebarSubmenu } from '@/types/sidebar'
 
 interface SidebarSubmenuProps {
   submenu: SidebarSubmenu[]
-  parentTitle: string
   className?: string
 }
 
-export function SidebarSubmenuComponent({ submenu, parentTitle, className }: SidebarSubmenuProps) {
+export function SidebarSubmenuComponent({ submenu, className }: SidebarSubmenuProps) {
   const t = useTranslations('nav')
   const pathname = usePathname()
 

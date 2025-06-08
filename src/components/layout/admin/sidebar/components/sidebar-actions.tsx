@@ -35,8 +35,6 @@ export function SidebarActions({ actions, itemTitle, className }: SidebarActions
   const [isOpen, setIsOpen] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
 
-  if (!actions || actions.length === 0) return null
-
   const handleActionClick = React.useCallback(async (action: MenuAction) => {
     if (action.disabled || isLoading) return
 
@@ -54,12 +52,14 @@ export function SidebarActions({ actions, itemTitle, className }: SidebarActions
 
       toast.success(`${t(action.type)} ${tCommon('success')}`)
       setIsOpen(false)
-    } catch (error) {
+    } catch {
       toast.error(`${t(action.type)} ${tCommon('error')}`)
     } finally {
       setIsLoading(false)
     }
   }, [t, tCommon, itemTitle, isLoading])
+
+  if (!actions || actions.length === 0) return null
 
   const regularActions = actions.filter(action => action.variant !== 'destructive')
   const destructiveActions = actions.filter(action => action.variant === 'destructive')
@@ -81,7 +81,7 @@ export function SidebarActions({ actions, itemTitle, className }: SidebarActions
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
-            side={isRTL ? 'left' : 'right'}
+            side={isRTL() ? 'left' : 'right'}
             align="start"
             className="min-w-48"
             sideOffset={8}
@@ -94,7 +94,7 @@ export function SidebarActions({ actions, itemTitle, className }: SidebarActions
                   disabled={action.disabled || isLoading}
                   className={cn(
                       'cursor-pointer gap-2',
-                      isRTL && 'flex-row-reverse'
+                      isRTL() && 'flex-row-reverse'
                   )}
               >
                 {action.icon && (
@@ -120,7 +120,7 @@ export function SidebarActions({ actions, itemTitle, className }: SidebarActions
                   disabled={action.disabled || isLoading}
                   className={cn(
                       'cursor-pointer gap-2 text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20',
-                      isRTL && 'flex-row-reverse'
+                      isRTL() && 'flex-row-reverse'
                   )}
               >
                 {action.icon && (
@@ -139,7 +139,7 @@ export function SidebarActions({ actions, itemTitle, className }: SidebarActions
                 <DropdownMenuSeparator />
                 <div className={cn(
                     'px-2 py-1 text-xs text-muted-foreground flex items-center gap-2',
-                    isRTL && 'flex-row-reverse'
+                    isRTL() && 'flex-row-reverse'
                 )}>
                   <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
                   {tSidebar('processing')}

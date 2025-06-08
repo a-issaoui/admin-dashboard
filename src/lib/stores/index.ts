@@ -1,5 +1,7 @@
-import * as React from 'react' // Add missing import
+import * as React from 'react'
 import { getCookie } from 'cookies-next'
+import { useThemeStore } from './theme-store'
+import { useLocaleStore } from './locale-store'
 
 export { useLocaleStore } from './locale-store'
 export { useSidebarStore } from './sidebar-store'
@@ -16,7 +18,6 @@ export function useStoreInitialization() {
     React.useEffect(() => {
         // Initialize theme from system preference
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-        const systemTheme = mediaQuery.matches ? 'dark' : 'light'
 
         const savedTheme = localStorage.getItem('theme-store')
         if (savedTheme) {
@@ -31,9 +32,9 @@ export function useStoreInitialization() {
         }
 
         // Initialize locale from cookie
-        const cookieLocale = getCookie('locale') as any
+        const cookieLocale = getCookie('locale') as string
         if (cookieLocale) {
-            setLocale(cookieLocale)
+            setLocale(cookieLocale as Parameters<typeof setLocale>[0])
         }
     }, [setTheme, setLocale])
 }

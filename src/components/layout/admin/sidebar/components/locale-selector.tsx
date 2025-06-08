@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useLocaleStore } from '@/lib/stores'
 import { cn } from '@/lib/utils'
+import type { LocaleCode } from '@/types/locale'
 
 export function LocaleSelector() {
   const t = useTranslations('locale')
@@ -23,7 +24,7 @@ export function LocaleSelector() {
 
   const currentLocale = locales.find(l => l.code === current)
 
-  const handleLocaleChange = React.useCallback(async (newLocale: any) => {
+  const handleLocaleChange = React.useCallback(async (newLocale: LocaleCode) => {
     try {
       await setLocale(newLocale)
       // Refresh page to apply new locale

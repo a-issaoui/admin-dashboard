@@ -7,19 +7,20 @@
 import * as React from 'react'
 import { useLocale } from 'next-intl'
 import { useLocaleStore, useThemeStore } from '@/lib/stores'
+import type { LocaleCode } from '@/types/locale'
 
 interface StoreProviderProps {
   children: React.ReactNode
 }
 
 export function StoreProvider({ children }: StoreProviderProps) {
-  const locale = useLocale()
+  const locale = useLocale() as LocaleCode
   const setLocale = useLocaleStore(state => state.setLocale)
   const setTheme = useThemeStore(state => state.setTheme)
 
   React.useEffect(() => {
     // Initialize locale from next-intl
-    setLocale(locale as any)
+    setLocale(locale)
 
     // Initialize theme
     const savedTheme = localStorage.getItem('theme-store')

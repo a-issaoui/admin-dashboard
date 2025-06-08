@@ -8,7 +8,7 @@ import type { SidebarStore, SidebarData } from '@/types/sidebar'
 
 export const useSidebarStore = create<SidebarStore>()(
     persist(
-        (set, get) => ({
+        (set) => ({
             // State
             data: [],
             collapsedStates: {},
@@ -46,9 +46,6 @@ export const useSidebarStore = create<SidebarStore>()(
                 set({ isLoading: loading })
             },
 
-            setError: (error: string | null) => {
-                set({ error })
-            }
         }),
         {
             name: 'sidebar-store',

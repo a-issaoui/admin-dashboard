@@ -12,17 +12,16 @@ import { orgData } from '@/data/org-data'
 import { cn } from '@/lib/utils'
 
 interface AppSidebarProps {
-  variant?: 'sidebar' | 'floating' | 'inset'
-  side?: 'left' | 'right'
-  collapsible?: 'offcanvas' | 'icon' | 'none'
-  className?: string
+    variant?: 'sidebar' | 'floating' | 'inset'
+    side?: 'left' | 'right'
+    collapsible?: 'offcanvas' | 'icon' | 'none'
+    className?: string
 }
 
 export function AppSidebar({
-                             variant = 'sidebar',
-                             side = 'left',
-                             collapsible = 'icon',
-                             className
+                               variant = 'sidebar',
+                               collapsible = 'icon',
+                               className
                            }: AppSidebarProps) {
     const { setData, data } = useSidebarStore()
 
