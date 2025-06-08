@@ -264,12 +264,12 @@ export const focus = {
 
       if (e.shiftKey) {
         if (document.activeElement === firstElement) {
-          lastElement.focus()
+          lastElement?.focus()
           e.preventDefault()
         }
       } else {
         if (document.activeElement === lastElement) {
-          firstElement.focus()
+          firstElement?.focus()
           e.preventDefault()
         }
       }

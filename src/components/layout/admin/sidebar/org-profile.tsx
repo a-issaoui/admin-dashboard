@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/sidebar/org-profile.tsx
+// src/components/layout/admin/sidebar/org-profile.tsx - FIXED
 // ============================================================================
 
 'use client'
@@ -23,7 +23,7 @@ export function OrgProfile({ org }: OrgProfileProps) {
         .split(' ')
         .filter(Boolean)
         .slice(0, 2)
-        .map(word => word[0].toUpperCase())
+        .map((word: string) => word[0]?.toUpperCase() || '')
         .join('')
   }, [org.name])
 

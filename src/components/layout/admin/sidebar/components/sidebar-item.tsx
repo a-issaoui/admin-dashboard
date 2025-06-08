@@ -1,3 +1,7 @@
+// ============================================================================
+// src/components/layout/admin/sidebar/components/sidebar-item.tsx - FIXED
+// ============================================================================
+
 'use client'
 
 import * as React from 'react'
@@ -33,7 +37,7 @@ export const SidebarItem = React.memo(function SidebarItem({ item, className }: 
     const { collapsedStates, toggleCollapsed } = useSidebarStore()
 
     const hasSubmenu = item.submenu && item.submenu.length > 0
-    const hasActions = item.actions && item.actions.length > 0
+    const hasActions = Boolean(item.actions?.length)
     const isActive = item.url === pathname
     const hasActiveChild = hasSubmenu && item.submenu!.some(sub => sub.url === pathname)
     const isCollapsed = collapsedStates[item.id] ?? !item.defaultExpanded
@@ -48,8 +52,6 @@ export const SidebarItem = React.memo(function SidebarItem({ item, className }: 
             return !isNaN(count) && count > 0
         })
     }, [hasSubmenu, item.submenu])
-
-    // Rest of your component logic remains the same...
 
     if (hasSubmenu) {
         return (
@@ -82,7 +84,7 @@ export const SidebarItem = React.memo(function SidebarItem({ item, className }: 
                         </SidebarMenuButton>
                     </CollapsibleTrigger>
 
-                    {hasActions && (
+                    {hasActions && item.actions && (
                         <SidebarActions
                             actions={item.actions}
                             itemTitle={t(item.titleKey)}
@@ -90,10 +92,7 @@ export const SidebarItem = React.memo(function SidebarItem({ item, className }: 
                     )}
 
                     <CollapsibleContent>
-                        <SidebarSubmenuComponent
-                            submenu={item.submenu!}
-                            parentTitle={t(item.titleKey)}
-                        />
+                        <SidebarSubmenuComponent submenu={item.submenu!} />
                     </CollapsibleContent>
                 </SidebarMenuItem>
             </Collapsible>
@@ -124,7 +123,7 @@ export const SidebarItem = React.memo(function SidebarItem({ item, className }: 
                 )}
             </SidebarMenuButton>
 
-            {hasActions && (
+            {hasActions && item.actions && (
                 <SidebarActions
                     actions={item.actions}
                     itemTitle={t(item.titleKey)}

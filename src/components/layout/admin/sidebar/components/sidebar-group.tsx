@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/components/sidebar-group.tsx
+// src/components/layout/admin/sidebar/components/sidebar-group.tsx - FIXED
 // ============================================================================
 
 'use client'
@@ -52,24 +52,24 @@ export function SidebarGroupComponent({ group, className }: SidebarGroupProps) {
         >
           <SidebarGroup className={className}>
 
-              <SidebarGroupLabel asChild className="flex-1">
-                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 focus-visible:ring-2 focus-visible:ring-offset-2">
-                  <span className="truncate">{t(group.titleKey!)}</span>
-                  <ChevronRight
-                      className={cn(
-                          'h-4 w-4 shrink-0 transition-transform duration-200',
-                          'group-data-[state=open]/collapsible-group:rotate-90',
-                          hasActions && 'mr-6'
-                      )}
-                  />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              {hasActions && (
-                  <SidebarActions
-                      actions={group.actions}
-                      itemTitle={t(group.titleKey!)}
-                  />
-              )}
+            <SidebarGroupLabel asChild className="flex-1">
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 focus-visible:ring-2 focus-visible:ring-offset-2">
+                <span className="truncate">{t(group.titleKey!)}</span>
+                <ChevronRight
+                    className={cn(
+                        'h-4 w-4 shrink-0 transition-transform duration-200',
+                        'group-data-[state=open]/collapsible-group:rotate-90',
+                        hasActions && 'mr-6'
+                    )}
+                />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            {hasActions && group.actions && (
+                <SidebarActions
+                    actions={group.actions}
+                    itemTitle={t(group.titleKey!)}
+                />
+            )}
 
             <CollapsibleContent>
               <SidebarGroupContent>
@@ -93,7 +93,7 @@ export function SidebarGroupComponent({ group, className }: SidebarGroupProps) {
               <SidebarGroupLabel className="flex-1">
                 {t(group.titleKey!)}
               </SidebarGroupLabel>
-              {hasActions && (
+              {hasActions && group.actions && (
                   <SidebarActions
                       actions={group.actions}
                       itemTitle={t(group.titleKey!)}

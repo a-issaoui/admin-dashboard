@@ -1,3 +1,7 @@
+// ============================================================================
+// src/components/error-boundary.tsx - FIXED
+// ============================================================================
+
 'use client'
 
 import * as React from 'react'
@@ -38,7 +42,7 @@ export class ErrorBoundary extends React.Component<
             return (
                 <FallbackComponent
                     error={this.state.error}
-                    reset={() => this.setState({ hasError: false, error: undefined })}
+                    reset={() => this.setState({ hasError: false })}
                 />
             )
         }

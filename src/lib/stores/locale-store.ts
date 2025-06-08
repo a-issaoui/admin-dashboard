@@ -1,3 +1,7 @@
+// ============================================================================
+// src/lib/stores/locale-store.ts - FIXED
+// ============================================================================
+
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { setCookie } from 'cookies-next'
@@ -78,7 +82,8 @@ export const useLocaleStore = create<LocaleStore>()(
 
             getCurrentLocale: () => {
                 const { current } = get()
-                return LOCALES.find(l => l.code === current) || LOCALES[0]
+                const locale = LOCALES.find(l => l.code === current)
+                return locale || LOCALES[0]!
             },
 
             isRTL: () => {

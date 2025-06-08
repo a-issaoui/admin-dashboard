@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/components/sidebar-submenu.tsx
+// src/components/layout/admin/sidebar/components/sidebar-submenu.tsx - FIXED
 // ============================================================================
 
 'use client'
@@ -32,7 +32,7 @@ export function SidebarSubmenuComponent({ submenu, className }: SidebarSubmenuPr
       <SidebarMenuSub className={cn('group-data-[collapsible=icon]:hidden', className)}>
         {submenu.map((item) => {
           const isActive = item.url === pathname
-          const hasActions = item.actions && item.actions.length > 0
+          const hasActions = Boolean(item.actions?.length)
 
           return (
               <SidebarMenuSubItem key={item.id}>
@@ -57,7 +57,7 @@ export function SidebarSubmenuComponent({ submenu, className }: SidebarSubmenuPr
                   </Link>
                 </SidebarMenuSubButton>
 
-                {hasActions && (
+                {hasActions && item.actions && (
                     <SidebarActions
                         actions={item.actions}
                         itemTitle={t(item.titleKey)}

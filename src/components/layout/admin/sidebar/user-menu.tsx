@@ -1,12 +1,12 @@
 // ============================================================================
-// src/components/sidebar/user-menu.tsx
+// src/components/layout/admin/sidebar/user-menu.tsx - FIXED
 // ============================================================================
 
 'use client'
 
 import * as React from 'react'
 import { useTranslations } from 'next-intl'
-import { LogOut, User, Settings } from 'lucide-react'
+import { LogOut, User as UserIcon, Settings } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +38,7 @@ export function UserMenu({ user }: UserMenuProps) {
         .split(' ')
         .filter(Boolean)
         .slice(0, 2)
-        .map(word => word[0].toUpperCase())
+        .map((word: string) => word[0]?.toUpperCase() || '')
         .join('')
   }, [user.name])
 
@@ -63,7 +63,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 </div>
                 <div className={cn(
                     'flex flex-col text-left leading-none min-w-0 flex-1',
-                    isRTL && 'text-right'
+                    isRTL() && 'text-right'
                 )}>
                   <span className="font-medium text-sm truncate">{user.name}</span>
                   <span className="text-xs text-muted-foreground truncate">{user.email}</span>
@@ -73,14 +73,14 @@ export function UserMenu({ user }: UserMenuProps) {
 
             <DropdownMenuContent
                 className="w-56"
-                align={isRTL ? 'start' : 'end'}
-                side={isRTL ? 'left' : 'right'}
+                align={isRTL() ? 'start' : 'end'}
+                side={isRTL() ? 'left' : 'right'}
                 sideOffset={8}
             >
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className={cn(
                     'flex items-center gap-2 px-1 py-1.5 text-sm',
-                    isRTL && 'flex-row-reverse'
+                    isRTL() && 'flex-row-reverse'
                 )}>
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.avatar} alt={user.name} />
@@ -88,7 +88,7 @@ export function UserMenu({ user }: UserMenuProps) {
                   </Avatar>
                   <div className={cn(
                       'flex flex-col leading-none min-w-0',
-                      isRTL && 'text-right'
+                      isRTL() && 'text-right'
                   )}>
                     <span className="font-medium truncate">{user.name}</span>
                     <span className="text-xs text-muted-foreground truncate">{user.email}</span>
@@ -100,15 +100,15 @@ export function UserMenu({ user }: UserMenuProps) {
 
               <DropdownMenuItem className={cn(
                   'cursor-pointer gap-2',
-                  isRTL && 'flex-row-reverse'
+                  isRTL() && 'flex-row-reverse'
               )}>
-                <User className="h-4 w-4" />
+                <UserIcon className="h-4 w-4" />
                 <span>{t('profile')}</span>
               </DropdownMenuItem>
 
               <DropdownMenuItem className={cn(
                   'cursor-pointer gap-2',
-                  isRTL && 'flex-row-reverse'
+                  isRTL() && 'flex-row-reverse'
               )}>
                 <Settings className="h-4 w-4" />
                 <span>{t('preferences')}</span>
@@ -118,7 +118,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
               <DropdownMenuItem className={cn(
                   'cursor-pointer gap-2 text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20',
-                  isRTL && 'flex-row-reverse'
+                  isRTL() && 'flex-row-reverse'
               )}>
                 <LogOut className="h-4 w-4" />
                 <span>{t('logout')}</span>

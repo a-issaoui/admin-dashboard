@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/components/sidebar-actions.tsx
+// src/components/layout/admin/sidebar/components/sidebar-actions.tsx - FIXED
 // ============================================================================
 
 'use client'
@@ -59,7 +59,7 @@ export function SidebarActions({ actions, itemTitle, className }: SidebarActions
     }
   }, [t, tCommon, itemTitle, isLoading])
 
-  if (!actions || actions.length === 0) return null
+  if (!actions.length) return null
 
   const regularActions = actions.filter(action => action.variant !== 'destructive')
   const destructiveActions = actions.filter(action => action.variant === 'destructive')

@@ -1,5 +1,5 @@
 // ============================================================================
-// src/lib/stores/sidebar-store.ts - Sidebar state management
+// src/lib/stores/sidebar-store.ts - FIXED
 // ============================================================================
 
 import { create } from 'zustand'
@@ -46,6 +46,9 @@ export const useSidebarStore = create<SidebarStore>()(
                 set({ isLoading: loading })
             },
 
+            setError: (error: string | null) => {
+                set({ error })
+            }
         }),
         {
             name: 'sidebar-store',
