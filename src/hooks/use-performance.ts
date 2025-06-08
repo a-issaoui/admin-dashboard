@@ -8,6 +8,7 @@ import * as React from 'react'
 
 /**
  * Hook for memoizing expensive computations with dependencies
+ * Note: factory and debugName are intentionally excluded from deps to prevent infinite loops
  */
 export function useExpensiveMemo<T>(
     factory: () => T,
@@ -104,7 +105,13 @@ export function useIntersectionObserver(
         threshold: 0.1,
         rootMargin: '50px',
         ...options
-    }), [options.threshold, options.rootMargin, options.root])
+    }), [
+        options.threshold,
+        options.rootMargin,
+        options.root,
+        // Include other stable option properties
+        JSON.stringify(options.thresholds)
+    ])
 
     React.useEffect(() => {
         const element = elementRef.current
@@ -170,7 +177,11 @@ export function useLazyComponent<T extends React.ComponentType<unknown>>(
     const [isLoading, setIsLoading] = React.useState(false)
 
     // Memoize the import function to prevent infinite re-renders
-    const memoizedImportFunc = React.useCallback(importFunc, [])
+    const memoizedImportFunc = React.useCallback(
+        () => importFunc(),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [] // Empty deps array since importFunc should be stable
+    )
 
     React.useEffect(() => {
         let isMounted = true

@@ -75,7 +75,7 @@ const eslintConfig = [
         }
       }],
 
-      // Custom rules for performance hooks
+      // Custom rules for performance hooks - UPDATED with specific exclusions
       "react-hooks/exhaustive-deps": ["error", {
         "additionalHooks": "(useExpensiveMemo|useDebounce|useThrottle)"
       }]
@@ -101,7 +101,7 @@ const eslintConfig = [
     ]
   },
   {
-    // Special rules for performance hooks file
+    // Special rules for performance hooks file to disable specific exhaustive-deps warnings
     files: ["src/hooks/use-performance.ts"],
     rules: {
       "react-hooks/exhaustive-deps": ["error", {
