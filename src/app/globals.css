@@ -49,11 +49,10 @@
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 
-  /* Enhanced transition variables for RTL support */
-  /* Optimized transition variables */
-  --locale-transition-duration: 200ms; /* Reduced from 350ms */
+  /* OPTIMIZED: Performance-focused transition variables */
+  --locale-transition-duration: 150ms; /* Reduced from 200ms */
   --locale-transition-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --sidebar-transition-duration: 200ms; /* Reduced from 300ms */
+  --sidebar-transition-duration: 150ms; /* Reduced from 200ms */
   --sidebar-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* RTL-specific variables */
@@ -154,11 +153,6 @@
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
 }
-/* RTL-specific CSS variables */
-[dir="rtl"] {
-  --rtl-transform-origin: right;
-  --rtl-sidebar-position: right;
-}
 
 @layer base {
   * {
@@ -167,12 +161,14 @@
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   /* OPTIMIZED: Only transition direction when it actually changes */
   html {
-    /* Remove automatic direction transition */
     transform-origin: var(--rtl-transform-origin);
+    /* PERFORMANCE: Use more efficient transform instead of layout changes */
+    will-change: auto; /* Let browser decide what to optimize */
   }
 
   /* Only apply transitions during actual locale changes */
@@ -194,7 +190,7 @@
 .sidebar-container {
   contain: layout style;
   transform-origin: var(--rtl-transform-origin);
-  /* Remove will-change as it can cause performance issues */
+  /* Use CSS containment for better performance */
 }
 
 .sidebar-container[data-direction="rtl"] [data-slot="sidebar"] {
@@ -208,6 +204,7 @@
 /* OPTIMIZED: Only apply transitions when needed */
 [data-slot="sidebar"] {
   /* Remove default transitions that cause flashing */
+  contain: layout; /* Optimize layout calculations */
 }
 
 /* Apply transitions only during locale changes */
@@ -223,9 +220,18 @@ html.locale-transitioning [data-slot="sidebar"] {
 [data-slot="sidebar-menu-button"] {
   contain: layout;
   transition:
-          background-color 100ms ease-in-out, /* Reduced from 150ms */
-          color 100ms ease-in-out,
-          transform 100ms ease-in-out;
+          background-color 80ms ease-in-out, /* Reduced from 100ms */
+          color 80ms ease-in-out,
+          transform 80ms ease-in-out;
+  /* Use transform for hover effects instead of layout changes */
+}
+
+[data-slot="sidebar-menu-button"]:hover {
+  transform: translateX(1px);
+}
+
+[dir="rtl"] [data-slot="sidebar-menu-button"]:hover {
+  transform: translateX(-1px);
 }
 
 [data-slot="sidebar-menu-item"] {
@@ -252,11 +258,11 @@ html.locale-transitioning [data-slot="sidebar"] {
 
 /* OPTIMIZED: Only apply strict containment during transitions */
 html.locale-transitioning [data-slot="sidebar"] {
-  contain: layout style; /* Reduced from strict */
+  contain: layout style; /* Reduced from strict for better performance */
 }
 
 html.locale-transitioning [data-slot="sidebar-content"] {
-  opacity: 0.9; /* Less jarring than 0.8 */
+  opacity: 0.95; /* Less jarring than 0.9 */
 }
 
 /* OPTIMIZED: Immediate text direction changes */
@@ -270,7 +276,8 @@ html.locale-transitioning [data-slot="sidebar-content"] {
 
 /* OPTIMIZED: Faster dropdown positioning */
 [data-slot="dropdown-menu-content"] {
-  transition: opacity 150ms ease-in-out; /* Removed transform transition */
+  transition: opacity 120ms ease-in-out; /* Removed transform transition */
+  contain: layout style; /* Better performance */
 }
 
 [dir="rtl"] [data-slot="dropdown-menu-content"] {
@@ -281,7 +288,7 @@ html.locale-transitioning [data-slot="sidebar-content"] {
   transform-origin: top left;
 }
 
-/* OPTIMIZED: Faster skeleton loading */
+/* OPTIMIZED: Faster skeleton loading with better performance */
 [data-slot="skeleton"] {
   contain: layout size;
   background: linear-gradient(
@@ -291,7 +298,7 @@ html.locale-transitioning [data-slot="sidebar-content"] {
           var(--accent) 75%
   );
   background-size: 200% 100%;
-  animation: skeleton-shimmer 1.2s infinite; /* Faster animation */
+  animation: skeleton-shimmer 1s infinite; /* Faster animation */
 }
 
 @keyframes skeleton-shimmer {
@@ -313,7 +320,8 @@ html.locale-transitioning [data-slot="sidebar-content"] {
 [data-slot="collapsible-content"] {
   transition:
           height var(--sidebar-transition-duration) var(--sidebar-transition-easing),
-          opacity 150ms ease-in-out; /* Faster opacity */
+          opacity 120ms ease-in-out; /* Faster opacity */
+  contain: layout; /* Better performance */
 }
 
 /* OPTIMIZED: Minimal transitions for accessibility */
@@ -330,19 +338,24 @@ html.locale-transitioning [data-slot="sidebar-content"] {
   html.locale-transitioning * {
     transition: none !important;
   }
+
+  /* Remove hover transforms for reduced motion */
+  [data-slot="sidebar-menu-button"]:hover {
+    transform: none;
+  }
 }
 
-/* OPTIMIZED: Selective GPU acceleration */
+/* OPTIMIZED: Smart GPU acceleration */
 html.locale-transitioning .sidebar-container,
 html.locale-transitioning [data-slot="sidebar"] {
-  transform: translateZ(0);
+  will-change: transform, opacity;
   backface-visibility: hidden;
 }
 
 /* Remove GPU acceleration when not transitioning to save resources */
 .sidebar-container:not(.locale-transitioning),
 [data-slot="sidebar"]:not(.locale-transitioning) {
-  transform: none;
+  will-change: auto;
   backface-visibility: visible;
 }
 
@@ -351,6 +364,7 @@ html.locale-transitioning [data-slot="sidebar"] {
   contain: layout size;
   will-change: auto; /* Let browser decide */
   transform-origin: var(--rtl-transform-origin);
+  transition: opacity 150ms ease-in-out; /* Simplified transition */
 }
 
 /* OPTIMIZED: Immediate focus management */
@@ -373,7 +387,8 @@ html.locale-transitioning [data-slot="sidebar-menu-button"] {
 
 /* OPTIMIZED: Immediate badge positioning */
 [data-slot="sidebar-badge"] {
-  transition: opacity 150ms ease-in-out; /* Only opacity transition */
+  transition: opacity 120ms ease-in-out; /* Only opacity transition */
+  contain: layout size; /* Better performance */
 }
 
 [dir="rtl"] [data-slot="sidebar-badge"] {
@@ -382,4 +397,70 @@ html.locale-transitioning [data-slot="sidebar-menu-button"] {
 
 [dir="ltr"] [data-slot="sidebar-badge"] {
   transform-origin: left center;
+}
+
+/* PERFORMANCE: Optimize scroll performance */
+* {
+  scrollbar-width: thin;
+}
+
+/* PERFORMANCE: Optimize image loading */
+img {
+  content-visibility: auto;
+}
+
+/* PERFORMANCE: Optimize table rendering */
+table {
+  contain: layout style;
+}
+
+/* PERFORMANCE: Optimize animation performance */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* PERFORMANCE: Optimize component animations */
+.animate-in {
+  animation: fadeIn 200ms ease-in-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 200ms ease-in-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInFromLeft 200ms ease-in-out;
+}
+
+/* PERFORMANCE: Optimize form elements */
+input, textarea, select {
+  contain: layout style;
+}
+
+/* PERFORMANCE: Optimize buttons */
+button {
+  contain: layout;
 }

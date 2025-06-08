@@ -1,5 +1,5 @@
 // ============================================================================
-// src/hooks/use-performance.ts - Performance optimization hooks (FIXED)
+// src/hooks/use-performance.ts - FIXED TypeScript errors
 // ============================================================================
 
 'use client'
@@ -99,10 +99,10 @@ export function useShallowMemo<T extends Record<string, unknown>>(obj: T): T {
 }
 
 /**
- * Hook for intersection observer with performance optimizations
+ * FIXED: Hook for intersection observer with proper TypeScript types
  */
 export function useIntersectionObserver(
-    elementRef: React.RefObject<Element>,
+    elementRef: React.RefObject<Element | null>,
     options: IntersectionObserverInit = {}
 ) {
     const [isIntersecting, setIsIntersecting] = React.useState(false)
@@ -121,7 +121,8 @@ export function useIntersectionObserver(
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                const isCurrentlyIntersecting = entry!.isIntersecting
+                if (!entry) return
+                const isCurrentlyIntersecting = entry.isIntersecting
                 setIsIntersecting(isCurrentlyIntersecting)
 
                 if (isCurrentlyIntersecting && !hasIntersected) {

@@ -1,5 +1,5 @@
 // ============================================================================
-// src/lib/stores/locale-store.ts - OPTIMIZED for smooth transitions
+// src/lib/stores/locale-store.ts - FIXED with proper async export
 // ============================================================================
 
 import { setCookie } from 'cookies-next'
@@ -55,7 +55,7 @@ export const useLocaleStore = create<LocaleStore>()(
             isTransitioning: false,
             locales: LOCALES,
 
-            // Synchronous setter for immediate updates
+            // FIXED: Synchronous setter for immediate updates
             setLocale: (locale: LocaleCode) => {
                 const localeConfig = LOCALES.find(l => l.code === locale)
                 if (!localeConfig) return
@@ -68,30 +68,40 @@ export const useLocaleStore = create<LocaleStore>()(
                     isTransitioning: false
                 })
 
-                // Set cookie
-                setCookie(LOCALE_COOKIE, locale, {
-                    maxAge: 365 * 24 * 60 * 60,
-                    path: '/',
-                    sameSite: 'lax'
-                })
+                // Set cookie with better error handling
+                try {
+                    setCookie(LOCALE_COOKIE, locale, {
+                        maxAge: 365 * 24 * 60 * 60,
+                        path: '/',
+                        sameSite: 'lax'
+                    })
+                } catch (error) {
+                    console.warn('Failed to set locale cookie:', error)
+                }
 
-                // Update document attributes immediately
+                // Update document attributes immediately with error handling
                 if (typeof document !== 'undefined') {
-                    const root = document.documentElement
-                    root.lang = locale
-                    root.dir = localeConfig.direction
-                    root.setAttribute('data-locale', locale)
-                    root.setAttribute('data-direction', localeConfig.direction)
+                    try {
+                        const root = document.documentElement
+                        root.lang = locale
+                        root.dir = localeConfig.direction
+                        root.setAttribute('data-locale', locale)
+                        root.setAttribute('data-direction', localeConfig.direction)
+                    } catch (error) {
+                        console.warn('Failed to update document attributes:', error)
+                    }
                 }
             },
 
-            // Async setter for transitions (only when needed)
+            // FIXED: Async setter with proper error handling
             setLocaleAsync: async (locale: LocaleCode) => {
                 const currentLocale = get().current
                 if (currentLocale === locale) return
 
                 const localeConfig = LOCALES.find(l => l.code === locale)
-                if (!localeConfig) throw new Error(`Locale ${locale} not supported`)
+                if (!localeConfig) {
+                    throw new Error(`Locale ${locale} not supported`)
+                }
 
                 // Only show transition if direction is changing
                 const currentDirection = get().direction
@@ -102,33 +112,42 @@ export const useLocaleStore = create<LocaleStore>()(
                 }
 
                 try {
-                    // Set cookie first
-                    setCookie(LOCALE_COOKIE, locale, {
-                        maxAge: 365 * 24 * 60 * 60,
-                        path: '/',
-                        sameSite: 'lax'
-                    })
+                    // Set cookie first with error handling
+                    try {
+                        setCookie(LOCALE_COOKIE, locale, {
+                            maxAge: 365 * 24 * 60 * 60,
+                            path: '/',
+                            sameSite: 'lax'
+                        })
+                    } catch (error) {
+                        console.warn('Failed to set locale cookie:', error)
+                    }
 
                     // Update document with transition class only if needed
                     if (typeof document !== 'undefined') {
-                        const root = document.documentElement
+                        try {
+                            const root = document.documentElement
 
-                        if (needsTransition) {
-                            root.classList.add('locale-transitioning')
-                        }
+                            if (needsTransition) {
+                                root.classList.add('locale-transitioning')
+                            }
 
-                        // Update attributes
-                        root.lang = locale
-                        root.dir = localeConfig.direction
-                        root.setAttribute('data-locale', locale)
-                        root.setAttribute('data-direction', localeConfig.direction)
+                            // Update attributes
+                            root.lang = locale
+                            root.dir = localeConfig.direction
+                            root.setAttribute('data-locale', locale)
+                            root.setAttribute('data-direction', localeConfig.direction)
 
-                        // Remove transition class after a shorter duration
-                        if (needsTransition) {
-                            setTimeout(() => {
-                                root.classList.remove('locale-transitioning')
-                                set({ isTransitioning: false })
-                            }, 200) // Reduced from 300ms
+                            // Remove transition class after duration
+                            if (needsTransition) {
+                                setTimeout(() => {
+                                    root.classList.remove('locale-transitioning')
+                                    set({ isTransitioning: false })
+                                }, 200)
+                            }
+                        } catch (error) {
+                            console.warn('Failed to update document during transition:', error)
+                            set({ isTransitioning: false })
                         }
                     }
 
@@ -166,8 +185,11 @@ export const useLocaleStore = create<LocaleStore>()(
     )
 )
 
-// Optimized selectors
+// FIXED: Optimized selectors with proper exports
 export const useCurrentLocale = () => useLocaleStore(state => state.current)
 export const useDirection = () => useLocaleStore(state => state.direction)
 export const useIsRTL = () => useLocaleStore(state => state.direction === 'rtl')
 export const useIsTransitioning = () => useLocaleStore(state => state.isTransitioning)
+export const useLocales = () => useLocaleStore(state => state.locales)
+export const useSetLocaleAsync = () => useLocaleStore(state => state.setLocaleAsync)
+export const useSetLocale = () => useLocaleStore(state => state.setLocale)

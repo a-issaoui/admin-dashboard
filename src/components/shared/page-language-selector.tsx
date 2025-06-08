@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/shared/page-language-selector.tsx - OPTIMIZED with smart refresh
+// src/components/shared/page-language-selector.tsx - FIXED with proper hooks
 // ============================================================================
 
 'use client'
@@ -15,27 +15,51 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useLocaleStore, useCurrentLocale, useIsRTL, useIsTransitioning } from '@/lib/stores'
+import { useExpensiveMemo } from '@/hooks/use-performance'
+import {
+    useCurrentLocale,
+    useDirection,
+    useIsRTL,
+    useIsTransitioning,
+    useLocales,
+    useSetLocaleAsync,
+    useSetLocale
+} from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import type { LocaleCode } from '@/types/locale'
 
 export function PageLanguageSelector() {
     const t = useTranslations('locale')
     const router = useRouter()
-    const { locales, setLocaleAsync, direction } = useLocaleStore()
 
-    // Use optimized selectors
+    // FIXED: Use proper exported hooks
     const current = useCurrentLocale()
+    const direction = useDirection()
     const isRTL = useIsRTL()
     const isTransitioning = useIsTransitioning()
+    const locales = useLocales()
+    const setLocaleAsync = useSetLocaleAsync()
+    const setLocale = useSetLocale()
 
-    // Memoize current locale data
-    const currentLocale = React.useMemo(() =>
+    // OPTIMIZED: Use performance hook for expensive computations
+    const currentLocale = useExpensiveMemo(() =>
             locales.find(l => l.code === current),
-        [locales, current]
+        [locales, current],
+        'currentLocale-lookup'
     )
 
-    // Smart locale change handler
+    // OPTIMIZED: Memoize locale options with performance monitoring
+    const localeOptions = useExpensiveMemo(() =>
+            locales.map(locale => ({
+                ...locale,
+                isSelected: current === locale.code,
+                willCauseRefresh: direction !== locale.direction
+            })),
+        [locales, current, direction],
+        'localeOptions-computation'
+    )
+
+    // FIXED: Smart locale change handler with proper error handling
     const handleLocaleChange = React.useCallback(async (newLocale: LocaleCode) => {
         if (current === newLocale || isTransitioning) return
 
@@ -52,26 +76,44 @@ export function PageLanguageSelector() {
                 }, 250)
             } else {
                 // For same-direction changes, just update the locale synchronously
-                useLocaleStore.getState().setLocale(newLocale)
-                // No refresh needed for same direction
+                setLocale(newLocale)
+                // Small delay to ensure state update propagates
+                setTimeout(() => {
+                    router.refresh()
+                }, 100)
             }
         } catch (error) {
             console.error('Failed to change locale:', error)
+            // Fallback to synchronous update
+            try {
+                setLocale(newLocale)
+                router.refresh()
+            } catch (fallbackError) {
+                console.error('Fallback locale change also failed:', fallbackError)
+            }
         }
-    }, [current, isTransitioning, setLocaleAsync, direction, locales, router])
+    }, [current, isTransitioning, setLocaleAsync, setLocale, direction, locales, router])
 
-    // Prepare button content with stable references
-    const buttonContent = React.useMemo(() => (
+    // OPTIMIZED: Prepare button content with stable references and performance monitoring
+    const buttonContent = useExpensiveMemo(() => (
         <div className={cn(
             "flex items-center gap-2",
             isRTL && "flex-row-reverse"
         )}>
             <Languages className="h-4 w-4" />
             <span className="text-sm whitespace-nowrap">
-        {currentLocale?.flag} {currentLocale?.nativeName}
-      </span>
+                {currentLocale?.flag} {currentLocale?.nativeName}
+            </span>
         </div>
-    ), [currentLocale, isRTL])
+    ), [currentLocale, isRTL], 'buttonContent-render')
+
+    // OPTIMIZED: Memoize loading content
+    const loadingContent = React.useMemo(() => (
+        <div className="flex items-center gap-2">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <span className="text-sm">Switching...</span>
+        </div>
+    ), [])
 
     return (
         <DropdownMenu>
@@ -87,14 +129,7 @@ export function PageLanguageSelector() {
                     disabled={isTransitioning}
                     aria-label={t('changeLanguage')}
                 >
-                    {isTransitioning ? (
-                        <div className="flex items-center gap-2">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                            <span className="text-sm">Switching...</span>
-                        </div>
-                    ) : (
-                        buttonContent
-                    )}
+                    {isTransitioning ? loadingContent : buttonContent}
                 </Button>
             </DropdownMenuTrigger>
 
@@ -103,37 +138,32 @@ export function PageLanguageSelector() {
                 className="min-w-[150px]"
                 sideOffset={8}
             >
-                {locales.map((locale) => {
-                    const isSelected = current === locale.code
-                    const willCauseRefresh = direction !== locale.direction
-
-                    return (
-                        <DropdownMenuItem
-                            key={locale.code}
-                            onClick={() => handleLocaleChange(locale.code)}
-                            className={cn(
-                                'flex items-center gap-2 cursor-pointer',
-                                isSelected && 'bg-accent',
-                                isRTL && 'flex-row-reverse',
-                                isTransitioning && 'opacity-50 pointer-events-none'
+                {localeOptions.map((locale) => (
+                    <DropdownMenuItem
+                        key={locale.code}
+                        onClick={() => handleLocaleChange(locale.code)}
+                        className={cn(
+                            'flex items-center gap-2 cursor-pointer',
+                            locale.isSelected && 'bg-accent',
+                            isRTL && 'flex-row-reverse',
+                            isTransitioning && 'opacity-50 pointer-events-none'
+                        )}
+                        disabled={isTransitioning}
+                    >
+                        <span className="text-base">{locale.flag}</span>
+                        <div className="flex flex-col flex-1">
+                            <span className="text-sm">{locale.nativeName}</span>
+                            {locale.willCauseRefresh && (
+                                <span className="text-xs text-muted-foreground">
+                                    (page refresh)
+                                </span>
                             )}
-                            disabled={isTransitioning}
-                        >
-                            <span className="text-base">{locale.flag}</span>
-                            <div className="flex flex-col flex-1">
-                                <span className="text-sm">{locale.nativeName}</span>
-                                {willCauseRefresh && (
-                                    <span className="text-xs text-muted-foreground">
-                    (page refresh)
-                  </span>
-                                )}
-                            </div>
-                            {isSelected && (
-                                <Check className="h-3 w-3 text-primary" />
-                            )}
-                        </DropdownMenuItem>
-                    )
-                })}
+                        </div>
+                        {locale.isSelected && (
+                            <Check className="h-3 w-3 text-primary" />
+                        )}
+                    </DropdownMenuItem>
+                ))}
             </DropdownMenuContent>
         </DropdownMenu>
     )

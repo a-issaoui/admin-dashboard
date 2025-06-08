@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/components/sidebar-group.tsx - FIXED
+// src/components/layout/admin/sidebar/components/sidebar-group.tsx - OPTIMIZED
 // ============================================================================
 
 'use client'
@@ -19,6 +19,7 @@ import {
   SidebarMenu,
   useSidebar
 } from '@/components/ui/sidebar'
+import { useExpensiveMemo, useRenderPerformance } from '@/hooks/use-performance'
 import { useSidebarStore } from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import type { SidebarGroup as SidebarGroupType } from '@/types/sidebar'
@@ -30,53 +31,101 @@ interface SidebarGroupProps {
   className?: string
 }
 
-export function SidebarGroupComponent({ group, className }: SidebarGroupProps) {
+export const SidebarGroupComponent = React.memo(function SidebarGroupComponent({
+                                                                                 group,
+                                                                                 className
+                                                                               }: SidebarGroupProps) {
+  // OPTIMIZED: Monitor render performance
+  useRenderPerformance(`SidebarGroup-${group.id}`)
+
   const t = useTranslations('nav')
   const { state } = useSidebar()
   const { collapsedStates, toggleCollapsed } = useSidebarStore()
 
-  const isCollapsed = state === 'collapsed'
-  const hasActions = group.actions && group.actions.length > 0
-  const isGroupCollapsed = collapsedStates[`group-${group.id}`] ?? !group.defaultOpen
+  // OPTIMIZED: Memoize expensive computations
+  const computedState = useExpensiveMemo(() => {
+        const isCollapsed = state === 'collapsed'
+        const hasActions = group.actions && group.actions.length > 0
+        const isGroupCollapsed = collapsedStates[`group-${group.id}`] ?? !group.defaultOpen
+        const showTitle = group.titleKey && !isCollapsed
+        const title = group.titleKey ? t(group.titleKey) : ''
 
-  // Don't show group title when sidebar is collapsed
-  const showTitle = group.titleKey && !isCollapsed
+        return {
+          isCollapsed,
+          hasActions,
+          isGroupCollapsed,
+          showTitle,
+          title
+        }
+      }, [state, group.actions, group.defaultOpen, group.titleKey, collapsedStates, group.id, t],
+      `sidebarGroup-${group.id}-state`)
+
+  // OPTIMIZED: Memoize toggle handler
+  const handleToggle = React.useCallback(() => {
+    toggleCollapsed(`group-${group.id}`)
+  }, [toggleCollapsed, group.id])
+
+  // OPTIMIZED: Memoize menu items to prevent unnecessary re-renders
+  const menuItems = useExpensiveMemo(() =>
+          group.menu.map((item) => (
+              <SidebarItem key={item.id} item={item} />
+          )),
+      [group.menu],
+      `menuItems-${group.id}`
+  )
+
+  // OPTIMIZED: Memoize collapsible trigger content
+  const triggerContent = useExpensiveMemo(() => (
+      <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 focus-visible:ring-2 focus-visible:ring-offset-2">
+        <span className="truncate">{computedState.title}</span>
+        <ChevronRight
+            className={cn(
+                'h-4 w-4 shrink-0 transition-transform duration-200',
+                'group-data-[state=open]/collapsible-group:rotate-90',
+                computedState.hasActions && 'mr-6'
+            )}
+        />
+      </CollapsibleTrigger>
+  ), [computedState.title, computedState.hasActions])
+
+  // OPTIMIZED: Memoize group label content
+  const groupLabelContent = useExpensiveMemo(() => (
+      <div className="flex items-center">
+        <SidebarGroupLabel className="flex-1">
+          {computedState.title}
+        </SidebarGroupLabel>
+        {computedState.hasActions && group.actions && (
+            <SidebarActions
+                actions={group.actions}
+                itemTitle={computedState.title}
+            />
+        )}
+      </div>
+  ), [computedState.title, computedState.hasActions, group.actions])
 
   // Collapsible group
-  if (group.collapsible && showTitle) {
+  if (group.collapsible && computedState.showTitle) {
     return (
         <Collapsible
-            open={!isGroupCollapsed}
-            onOpenChange={() => toggleCollapsed(`group-${group.id}`)}
+            open={!computedState.isGroupCollapsed}
+            onOpenChange={handleToggle}
             className="group/collapsible-group"
         >
           <SidebarGroup className={className}>
-
             <SidebarGroupLabel asChild className="flex-1">
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 focus-visible:ring-2 focus-visible:ring-offset-2">
-                <span className="truncate">{t(group.titleKey!)}</span>
-                <ChevronRight
-                    className={cn(
-                        'h-4 w-4 shrink-0 transition-transform duration-200',
-                        'group-data-[state=open]/collapsible-group:rotate-90',
-                        hasActions && 'mr-6'
-                    )}
-                />
-              </CollapsibleTrigger>
+              {triggerContent}
             </SidebarGroupLabel>
-            {hasActions && group.actions && (
+            {computedState.hasActions && group.actions && (
                 <SidebarActions
                     actions={group.actions}
-                    itemTitle={t(group.titleKey!)}
+                    itemTitle={computedState.title}
                 />
             )}
 
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {group.menu.map((item) => (
-                      <SidebarItem key={item.id} item={item} />
-                  ))}
+                  {menuItems}
                 </SidebarMenu>
               </SidebarGroupContent>
             </CollapsibleContent>
@@ -88,26 +137,12 @@ export function SidebarGroupComponent({ group, className }: SidebarGroupProps) {
   // Standard group
   return (
       <SidebarGroup className={className}>
-        {showTitle && (
-            <div className="flex items-center">
-              <SidebarGroupLabel className="flex-1">
-                {t(group.titleKey!)}
-              </SidebarGroupLabel>
-              {hasActions && group.actions && (
-                  <SidebarActions
-                      actions={group.actions}
-                      itemTitle={t(group.titleKey!)}
-                  />
-              )}
-            </div>
-        )}
+        {computedState.showTitle && groupLabelContent}
         <SidebarGroupContent>
           <SidebarMenu>
-            {group.menu.map((item) => (
-                <SidebarItem key={item.id} item={item} />
-            ))}
+            {menuItems}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
   )
-}
+})
