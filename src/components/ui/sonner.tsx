@@ -8,11 +8,16 @@ import { useTheme } from "next-themes"
 import { Toaster as Sonner, ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-    const { theme = "system" } = useTheme()
+    const { theme } = useTheme()
+
+    // Ensure theme is never undefined to satisfy exactOptionalPropertyTypes
+    const validTheme: "light" | "dark" | "system" = theme === "light" || theme === "dark" || theme === "system"
+        ? theme
+        : "system"
 
     return (
         <Sonner
-            theme={theme as ToasterProps["theme"]}
+            theme={validTheme}
             className="toaster group"
             style={
                 {

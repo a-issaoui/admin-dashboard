@@ -63,8 +63,8 @@ export const SidebarItem = React.memo(function SidebarItem({ item, className }: 
                 <SidebarMenuItem className={className}>
                     <CollapsibleTrigger asChild>
                         <SidebarMenuButton
-                            isActive={isActive || hasActiveChild}
-                            disabled={item.disabled}
+                            isActive={Boolean(isActive || hasActiveChild)}
+                            disabled={item.disabled || false}
                             className={cn(
                                 'group focus-visible:ring-2 focus-visible:ring-offset-2',
                                 !hasActions && 'group-has-data-[sidebar=menu-action]/menu-item:pr-2'
@@ -103,8 +103,8 @@ export const SidebarItem = React.memo(function SidebarItem({ item, className }: 
         <SidebarMenuItem className={className}>
             <SidebarMenuButton
                 asChild={!!item.url}
-                isActive={isActive}
-                disabled={item.disabled}
+                isActive={Boolean(isActive)}
+                disabled={item.disabled || false}
                 className={cn(
                     'group focus-visible:ring-2 focus-visible:ring-offset-2',
                     !hasActions && 'group-has-data-[sidebar=menu-action]/menu-item:pr-2'
