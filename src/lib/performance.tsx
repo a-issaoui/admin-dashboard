@@ -1,4 +1,6 @@
-// Performance monitoring utilities
+// ============================================================================
+// src/lib/performance.ts - FIXED
+// ============================================================================
 
 import * as React from 'react'
 
@@ -26,17 +28,17 @@ export function withPerformanceMonitoring<T extends (...args: unknown[]) => unkn
 }
 
 // Lazy loading utilities
-export function createLazyComponent<T extends React.ComponentType<unknown>>(
-    factory: () => Promise<{ default: T }>,
+export function createLazyComponent<P extends Record<string, unknown> = Record<string, never>>(
+    factory: () => Promise<{ default: React.ComponentType<P> }>,
     fallback?: React.ComponentType
-) {
+): React.ComponentType<P> {
     const LazyComponent = React.lazy(factory)
 
-    return function LazyWrapper(props: React.ComponentProps<T>) {
+    return function LazyWrapper(props: P) {
         return (
             <React.Suspense fallback={fallback ? React.createElement(fallback) : null}>
                 <LazyComponent {...props} />
-        </React.Suspense>
-    )
+            </React.Suspense>
+        )
     }
 }

@@ -1,3 +1,7 @@
+// ============================================================================
+// src/lib/stores/index.ts - FIXED
+// ============================================================================
+
 import * as React from 'react'
 import { getCookie } from 'cookies-next'
 import { useThemeStore } from './theme-store'
@@ -17,8 +21,6 @@ export function useStoreInitialization() {
 
     React.useEffect(() => {
         // Initialize theme from system preference
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-
         const savedTheme = localStorage.getItem('theme-store')
         if (savedTheme) {
             try {
