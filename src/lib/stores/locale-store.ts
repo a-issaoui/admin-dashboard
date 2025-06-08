@@ -1,7 +1,3 @@
-// ============================================================================
-// src/lib/stores/locale-store.ts - Locale management
-// ============================================================================
-
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { setCookie, getCookie } from 'cookies-next'
@@ -26,7 +22,7 @@ const LOCALES: LocaleConfig[] = [
         code: 'ar',
         name: 'Arabic',
         nativeName: 'العربية',
-        flag: '🇹🇳', // Tunisian flag
+        flag: '🇹🇳',
         direction: 'rtl'
     }
 ]
@@ -60,19 +56,12 @@ export const useLocaleStore = create<LocaleStore>()(
                         throw new Error(`Locale ${locale} not supported`)
                     }
 
-                    // Set cookie
+                    // Only set cookie - let middleware and next-intl handle the rest
                     setCookie(LOCALE_COOKIE, locale, {
-                        maxAge: 365 * 24 * 60 * 60, // 1 year
+                        maxAge: 365 * 24 * 60 * 60,
                         path: '/',
                         sameSite: 'lax'
                     })
-
-                    // Update document
-                    if (typeof document !== 'undefined') {
-                        document.documentElement.lang = locale
-                        document.documentElement.dir = localeConfig.direction
-                        document.documentElement.setAttribute('data-locale', locale)
-                    }
 
                     // Update state
                     set({
@@ -105,11 +94,3 @@ export const useLocaleStore = create<LocaleStore>()(
         }
     )
 )
-
-// Initialize from cookie on client
-if (typeof window !== 'undefined') {
-    const cookieLocale = getCookie(LOCALE_COOKIE) as LocaleCode
-    if (cookieLocale && LOCALES.some(l => l.code === cookieLocale)) {
-        useLocaleStore.getState().setLocale(cookieLocale)
-    }
-}

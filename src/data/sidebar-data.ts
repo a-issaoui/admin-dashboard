@@ -1,21 +1,16 @@
-// ============================================================================
-// src/data/sidebar-data.ts (FIXED titleKey format)
-// ============================================================================
-
 import type { SidebarData } from '@/types/sidebar'
 
 export const sidebarData: SidebarData = [
-    // Dashboard Group
     {
         id: 'dashboard',
-        titleKey: 'dashboard', // FIX: Remove 'nav.' prefix
+        titleKey: 'dashboard',
         order: 1,
         menu: [
             {
                 id: 'overview',
-                titleKey: 'overview', // FIX: Just 'overview', not 'nav.overview'
+                titleKey: 'overview',
                 url: '/admin',
-                icon: { name: 'HouseLineIcon', size: 20, weight: 'regular' },
+                icon: { name: 'HouseIcon', size: 20, weight: 'regular' },
                 badge: { count: 5, color: 'red' },
                 actions: [
                     { id: 'refresh-overview', type: 'refresh', shortcut: '⌘R' },
@@ -24,91 +19,67 @@ export const sidebarData: SidebarData = [
             },
             {
                 id: 'analytics',
-                titleKey: 'analytics', // FIX: Just 'analytics'
+                titleKey: 'analytics',
                 url: '/admin/analytics',
                 icon: { name: 'ChartBarIcon', size: 20, weight: 'bold' },
-                badge: { count: 12, color: 'blue' },
-                actions: [
-                    { id: 'export-analytics', type: 'export', shortcut: '⌘E' },
-                    { id: 'settings-analytics', type: 'settings' }
-                ]
+                badge: { count: 12, color: 'blue' }
             },
             {
                 id: 'reports',
-                titleKey: 'reports', // FIX: Just 'reports'
+                titleKey: 'reports',
                 url: '/admin/reports',
                 icon: { name: 'FileTextIcon', size: 20, weight: 'light' },
-                badge: { count: 3, color: 'green' },
-                actions: [
-                    { id: 'create-report', type: 'create' },
-                    { id: 'export-reports', type: 'export' }
-                ]
+                badge: { count: 3, color: 'green' }
             }
         ]
     },
-
-    // Navigation Group (no title)
     {
         id: 'navigation',
         menu: [
             {
                 id: 'home',
-                titleKey: 'home', // FIX: Just 'home'
+                titleKey: 'home',
                 url: '/home',
-                icon: { name: 'HouseLineIcon', size: 20, weight: 'fill' }
+                icon: { name: 'HouseIcon', size: 20, weight: 'fill' }
             },
             {
                 id: 'inbox',
-                titleKey: 'inbox', // FIX: Just 'inbox'
+                titleKey: 'inbox',
                 url: '/inbox',
                 icon: { name: 'EnvelopeIcon', size: 20, weight: 'regular' },
-                badge: { count: 5, color: 'red' },
-                actions: [
-                    { id: 'compose', type: 'create', shortcut: '⌘N' }
-                ]
+                badge: { count: 5, color: 'red' }
             },
             {
                 id: 'notifications',
-                titleKey: 'notifications', // FIX: Just 'notifications'
+                titleKey: 'notifications',
                 icon: { name: 'BellIcon', size: 20, weight: 'bold' },
                 defaultExpanded: true,
                 submenu: [
                     {
                         id: 'all-notifications',
-                        titleKey: 'notifications', // FIX: Just 'notifications'
+                        titleKey: 'notifications',
                         url: '/notifications',
                         icon: { name: 'BellIcon', size: 16, weight: 'fill' },
                         badge: { count: 8, color: 'blue' }
                     },
                     {
                         id: 'pending-notifications',
-                        titleKey: 'pending', // FIX: Just 'pending'
+                        titleKey: 'pending',
                         url: '/notifications/pending',
                         icon: { name: 'ClockIcon', size: 16, weight: 'light' },
                         badge: { count: 3, color: 'yellow' }
                     }
-                ],
-                actions: [
-                    { id: 'clear-notifications', type: 'delete', variant: 'destructive' }
                 ]
             },
             {
                 id: 'messages',
-                titleKey: 'messages', // FIX: Just 'messages'
+                titleKey: 'messages',
                 url: '/messages',
                 icon: { name: 'EnvelopeIcon', size: 20, weight: 'duotone' },
-                badge: { count: 3, color: 'green', variant: 'ghost' }
-            },
-            {
-                id: 'drafts',
-                titleKey: 'drafts', // FIX: Just 'drafts'
-                url: '/drafts',
-                icon: { name: 'FileTextIcon', size: 20, weight: 'thin' },
-                badge: { count: 8, color: 'purple' }
+                badge: { count: 3, color: 'green' }
             }
         ]
     },
-
     // Projects Group
     {
         id: 'projects',
@@ -144,10 +115,6 @@ export const sidebarData: SidebarData = [
                         icon: { name: 'StarIcon', size: 16, weight: 'fill' },
                         badge: { count: 2, color: 'yellow' }
                     }
-                ],
-                actions: [
-                    { id: 'sync-calendar', type: 'refresh' },
-                    { id: 'export-calendar', type: 'export' }
                 ]
             },
             {

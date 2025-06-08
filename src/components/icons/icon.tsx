@@ -1,17 +1,17 @@
 "use client";
 
-import * as Icons from "@phosphor-icons/react/ssr";
+import * as React from "react";
+import * as Icons from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
-// Export the IconName type
 export type IconName = keyof typeof Icons;
 
-export interface IconProps extends React.SVGProps<SVGSVGElement> {
+export interface IconProps extends Omit<React.SVGProps<SVGSVGElement>, 'ref'> {
     name: IconName;
     size?: number | string;
     weight?: "thin" | "light" | "regular" | "bold" | "fill" | "duotone";
     color?: string;
-    isRTL?: boolean;
+    mirrored?: boolean;
 }
 
 export const Icon = ({
@@ -19,25 +19,30 @@ export const Icon = ({
                          size = 20,
                          weight = "regular",
                          color = "currentColor",
-                         isRTL = false,
+                         mirrored = false,
                          className,
                          ...props
                      }: IconProps) => {
-    const Component = Icons[name] as React.FC<React.SVGProps<SVGSVGElement> & {
+    const Component = Icons[name] as React.ComponentType<{
         size?: number | string;
         weight?: IconProps["weight"];
         color?: string;
         mirrored?: boolean;
-    }>;
+    } & React.SVGProps<SVGSVGElement>>;
 
     if (!Component) {
-        // It's good practice to also return a fallback or handle the error gracefully
-        // For example, render a default "unknown" icon or nothing,
-        // instead of just logging to console which might be missed.
-        console.warn(`Icon "${name}" not found in @phosphor-icons/react/ssr.`);
-        // Consider returning a default icon or null
-        // For example: return <Icons.Question size={size} color={color} className={className} {...props} />;
-        return null;
+        console.warn(`Icon "${name}" not found in @phosphor-icons/react.`);
+        const FallbackIcon = Icons.QuestionIcon;
+        return (
+            <FallbackIcon
+                size={size}
+                weight={weight}
+                color={color}
+                mirrored={mirrored}
+                className={cn("inline align-middle", className)}
+                {...props}
+            />
+        );
     }
 
     return (
@@ -45,8 +50,8 @@ export const Icon = ({
             size={size}
             weight={weight}
             color={color}
-            mirrored={isRTL} // The 'mirrored' prop from Phosphor handles RTL flipping
-            className={cn("inline align-middle", className)} // Added align-middle for better default inline layout
+            mirrored={mirrored}
+            className={cn("inline align-middle", className)}
             {...props}
         />
     );

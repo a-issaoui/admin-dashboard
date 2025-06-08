@@ -51,7 +51,7 @@ export function SidebarGroupComponent({ group, className }: SidebarGroupProps) {
             className="group/collapsible-group"
         >
           <SidebarGroup className={className}>
-            <div className="flex items-center">
+
               <SidebarGroupLabel asChild className="flex-1">
                 <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 focus-visible:ring-2 focus-visible:ring-offset-2">
                   <span className="truncate">{t(group.titleKey!)}</span>
@@ -70,7 +70,7 @@ export function SidebarGroupComponent({ group, className }: SidebarGroupProps) {
                       itemTitle={t(group.titleKey!)}
                   />
               )}
-            </div>
+
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>

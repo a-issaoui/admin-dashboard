@@ -1,12 +1,10 @@
-// ============================================================================
-// src/lib/stores/index.ts - Store exports
-// ============================================================================
+import * as React from 'react' // Add missing import
+import { getCookie } from 'cookies-next'
 
 export { useLocaleStore } from './locale-store'
 export { useSidebarStore } from './sidebar-store'
 export { useThemeStore } from './theme-store'
 
-// Export types
 export type { LocaleCode, LocaleConfig } from '@/types/locale'
 export type { SidebarData, SidebarMenuItem, SidebarGroup } from '@/types/sidebar'
 
@@ -20,7 +18,6 @@ export function useStoreInitialization() {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
         const systemTheme = mediaQuery.matches ? 'dark' : 'light'
 
-        // Get saved theme or use system
         const savedTheme = localStorage.getItem('theme-store')
         if (savedTheme) {
             try {
@@ -34,7 +31,7 @@ export function useStoreInitialization() {
         }
 
         // Initialize locale from cookie
-        const cookieLocale = getCookie('locale') as LocaleCode
+        const cookieLocale = getCookie('locale') as any
         if (cookieLocale) {
             setLocale(cookieLocale)
         }
