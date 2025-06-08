@@ -1,5 +1,5 @@
 // ============================================================================
-// src/hooks/use-performance.ts - Performance optimization hooks (FIXED ESLint)
+// src/hooks/use-performance.ts - Performance optimization hooks (FIXED)
 // ============================================================================
 
 'use client'
@@ -24,7 +24,7 @@ export function useExpensiveMemo<T>(
             return result
         }
         return factory()
-    }, deps)
+    }, deps) // deps is intentionally from parameter, not including factory/debugName
 }
 
 /**
@@ -99,6 +99,13 @@ export function useIntersectionObserver(
     const [isIntersecting, setIsIntersecting] = React.useState(false)
     const [hasIntersected, setHasIntersected] = React.useState(false)
 
+    // Memoize the options to prevent effect re-runs
+    const memoizedOptions = React.useMemo(() => ({
+        threshold: 0.1,
+        rootMargin: '50px',
+        ...options
+    }), [options.threshold, options.rootMargin, options.root])
+
     React.useEffect(() => {
         const element = elementRef.current
         if (!element) return
@@ -112,16 +119,12 @@ export function useIntersectionObserver(
                     setHasIntersected(true)
                 }
             },
-            {
-                threshold: 0.1,
-                rootMargin: '50px',
-                ...options
-            }
+            memoizedOptions
         )
 
         observer.observe(element)
         return () => observer.disconnect()
-    }, [elementRef, hasIntersected, options])
+    }, [elementRef, hasIntersected, memoizedOptions])
 
     return { isIntersecting, hasIntersected }
 }
@@ -166,6 +169,9 @@ export function useLazyComponent<T extends React.ComponentType<unknown>>(
     const [error, setError] = React.useState<Error | null>(null)
     const [isLoading, setIsLoading] = React.useState(false)
 
+    // Memoize the import function to prevent infinite re-renders
+    const memoizedImportFunc = React.useCallback(importFunc, [])
+
     React.useEffect(() => {
         let isMounted = true
 
@@ -174,7 +180,7 @@ export function useLazyComponent<T extends React.ComponentType<unknown>>(
                 setIsLoading(true)
                 setError(null)
 
-                const { default: LoadedComponent } = await importFunc()
+                const { default: LoadedComponent } = await memoizedImportFunc()
 
                 if (isMounted) {
                     setComponent(() => LoadedComponent)
@@ -195,7 +201,7 @@ export function useLazyComponent<T extends React.ComponentType<unknown>>(
         return () => {
             isMounted = false
         }
-    }, [importFunc])
+    }, [memoizedImportFunc])
 
     const LazyComponent = React.useMemo(() => {
         if (error) {

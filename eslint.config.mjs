@@ -15,7 +15,6 @@ const eslintConfig = [
     rules: {
       // Performance and optimization rules
       "@typescript-eslint/no-explicit-any": "warn",
-      "react-hooks/exhaustive-deps": "warn",
       "react/display-name": "error",
       "react/no-children-prop": "error",
       "@typescript-eslint/no-unused-vars": ["error", {
@@ -27,7 +26,7 @@ const eslintConfig = [
       "@typescript-eslint/ban-ts-comment": "warn",
       "@typescript-eslint/prefer-as-const": "error",
 
-      // React specific optimizations - FIXED
+      // React specific optimizations
       "react/jsx-key": "error",
       "react/jsx-no-useless-fragment": ["warn", {
         "allowExpressions": true
@@ -74,6 +73,11 @@ const eslintConfig = [
           "order": "asc",
           "caseInsensitive": true
         }
+      }],
+
+      // Custom rules for performance hooks
+      "react-hooks/exhaustive-deps": ["error", {
+        "additionalHooks": "(useExpensiveMemo|useDebounce|useThrottle)"
       }]
     },
     settings: {
@@ -85,6 +89,24 @@ const eslintConfig = [
           alwaysTryTypes: true
         }
       }
+    },
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    ignores: [
+      "node_modules/**",
+      ".next/**",
+      "out/**",
+      "dist/**",
+      "*.config.js",
+      "*.config.ts"
+    ]
+  },
+  {
+    // Special rules for performance hooks file
+    files: ["src/hooks/use-performance.ts"],
+    rules: {
+      "react-hooks/exhaustive-deps": ["error", {
+        "additionalHooks": "useExpensiveMemo"
+      }]
     }
   }
 ];
