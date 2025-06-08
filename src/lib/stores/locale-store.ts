@@ -2,9 +2,9 @@
 // src/lib/stores/locale-store.ts - OPTIMIZED
 // ============================================================================
 
+import { setCookie } from 'cookies-next'
 import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
-import { setCookie } from 'cookies-next'
 import type { LocaleCode, LocaleConfig, LocaleState } from '@/types/locale'
 
 const LOCALES: LocaleConfig[] = [

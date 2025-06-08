@@ -13,8 +13,8 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
-      // Disable problematic rules for performance hooks
-      "@typescript-eslint/no-explicit-any": "off",
+      // Performance and optimization rules
+      "@typescript-eslint/no-explicit-any": "warn",
       "react-hooks/exhaustive-deps": "warn",
       "react/display-name": "error",
       "react/no-children-prop": "error",
@@ -27,19 +27,63 @@ const eslintConfig = [
       "@typescript-eslint/ban-ts-comment": "warn",
       "@typescript-eslint/prefer-as-const": "error",
 
-      // React specific optimizations
+      // React specific optimizations - FIXED
       "react/jsx-key": "error",
-      "react/jsx-no-useless-fragment": "warn",
-      "react/self-closing-comp": "warn",
+      "react/jsx-no-useless-fragment": ["warn", {
+        "allowExpressions": true
+      }],
+      "react/self-closing-comp": ["warn", {
+        "component": true,
+        "html": true
+      }],
 
       // Performance related
       "prefer-const": "error",
       "no-var": "error",
-      "object-shorthand": "warn"
+      "object-shorthand": "warn",
+
+      // Additional optimization rules
+      "no-unused-expressions": ["error", {
+        "allowShortCircuit": true,
+        "allowTernary": true,
+        "allowTaggedTemplates": true
+      }],
+      "no-console": ["warn", {
+        "allow": ["warn", "error", "info"]
+      }],
+
+      // React specific fixes
+      "react/no-deprecated": "error",
+      "react/no-unescaped-entities": ["error", {
+        "forbid": [">", "}"]
+      }],
+
+      // Import optimization
+      "import/no-duplicates": "error",
+      "import/order": ["warn", {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index"
+        ],
+        "newlines-between": "never",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }]
     },
     settings: {
       react: {
         version: "detect"
+      },
+      "import/resolver": {
+        typescript: {
+          alwaysTryTypes: true
+        }
       }
     }
   }

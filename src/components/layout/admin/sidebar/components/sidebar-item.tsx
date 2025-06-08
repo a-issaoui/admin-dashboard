@@ -1,30 +1,30 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/components/sidebar-item.tsx - OPTIMIZED (FIXED)
+// src/components/layout/admin/sidebar/components/sidebar-item.tsx - FIXED
 // ============================================================================
 
 'use client'
 
-import * as React from 'react'
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { usePathname } from 'next/navigation'
 import { ChevronRight } from 'lucide-react'
-import {
-    SidebarMenuItem,
-    SidebarMenuButton
-} from '@/components/ui/sidebar'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import * as React from 'react'
+import { Icon } from '@/components/icons'
 import {
     Collapsible,
     CollapsibleTrigger,
     CollapsibleContent
 } from '@/components/ui/collapsible'
-import { Icon } from '@/components/icons'
-import { SidebarBadge } from './sidebar-badge'
-import { SidebarActions } from './sidebar-actions'
-import { SidebarSubmenuComponent } from './sidebar-submenu'
-import { useSidebarCollapsedStates } from '@/lib/stores' // FIXED: Import from stores
+import {
+    SidebarMenuItem,
+    SidebarMenuButton
+} from '@/components/ui/sidebar'
+import { useSidebarStore } from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import type { SidebarMenuItem as SidebarMenuItemType } from '@/types/sidebar'
+import { SidebarActions } from './sidebar-actions'
+import { SidebarBadge } from './sidebar-badge'
+import { SidebarSubmenuComponent } from './sidebar-submenu'
 
 interface SidebarItemProps {
     item: SidebarMenuItemType
@@ -61,7 +61,7 @@ const MemoizedSubmenu = React.memo(SidebarSubmenuComponent)
 export const SidebarItem = React.memo(function SidebarItem({ item, className }: SidebarItemProps) {
     const t = useTranslations('nav')
     const pathname = usePathname()
-    const collapsedStates = useSidebarCollapsedStates()
+    const { collapsedStates, toggleCollapsed } = useSidebarStore()
 
     // Memoize expensive computations
     const computedState = React.useMemo(() => {
@@ -92,17 +92,15 @@ export const SidebarItem = React.memo(function SidebarItem({ item, className }: 
     }, [item, pathname, collapsedStates, t])
 
     // Memoize toggle function
-    const toggleCollapsed = React.useCallback(() => {
-        // Use direct store method to avoid re-renders
-        const { toggleCollapsed } = useSidebarCollapsedStates.getState()
+    const handleToggleCollapsed = React.useCallback(() => {
         toggleCollapsed(item.id)
-    }, [item.id])
+    }, [toggleCollapsed, item.id])
 
     if (computedState.hasSubmenu) {
         return (
             <Collapsible
                 open={!computedState.isCollapsed}
-                onOpenChange={toggleCollapsed}
+                onOpenChange={handleToggleCollapsed}
                 className="group/collapsible"
             >
                 <SidebarMenuItem className={className}>

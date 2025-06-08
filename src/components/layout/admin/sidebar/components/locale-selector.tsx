@@ -4,16 +4,16 @@
 
 'use client'
 
-import * as React from 'react'
-import { useTranslations } from 'next-intl'
 import { Languages, Check } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import * as React from 'react'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
 import { useLocaleStore } from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import type { LocaleCode } from '@/types/locale'

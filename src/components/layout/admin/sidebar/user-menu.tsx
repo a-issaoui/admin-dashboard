@@ -4,9 +4,10 @@
 
 'use client'
 
-import * as React from 'react'
-import { useTranslations } from 'next-intl'
 import { LogOut, User as UserIcon, Settings } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import * as React from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +21,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useLocaleStore } from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import type { User } from '@/types/global'

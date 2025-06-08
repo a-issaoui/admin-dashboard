@@ -2,10 +2,10 @@
 // src/i18n/request.ts - Server-side i18n setup
 // ============================================================================
 
-import { getRequestConfig } from 'next-intl/server'
 import { cookies } from 'next/headers'
-import { DEFAULT_LOCALE } from './config'
+import { getRequestConfig } from 'next-intl/server'
 import type { LocaleCode } from '@/types/locale'
+import { DEFAULT_LOCALE } from './config'
 
 export default getRequestConfig(async () => {
     const cookieStore = await cookies()

@@ -1,5 +1,5 @@
 // ============================================================================
-// src/lib/performance.ts - FIXED
+// src/lib/performance.ts - FIXED performance utilities
 // ============================================================================
 
 import * as React from 'react'
@@ -14,7 +14,7 @@ export function measurePerformance<T>(
     const result = fn()
     const end = performance.now()
 
-    console.log(`⚡ ${label}: ${(end - start).toFixed(2)}ms`)
+    console.info(`⚡ ${label}: ${(end - start).toFixed(2)}ms`)
     return result
 }
 

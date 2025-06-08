@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/icons'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function AdminPage() {
     const t = useTranslations('nav')
@@ -107,21 +107,21 @@ export default function AdminPage() {
                         <div className="space-y-4">
                             {/* Activity items would go here */}
                             <div className="flex items-center space-x-4">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div className="w-2 h-2 bg-blue-500 rounded-full" />
                                 <div className="flex-1 text-sm">
                                     <p>New user registered</p>
                                     <p className="text-xs text-muted-foreground">2 minutes ago</p>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-4">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <div className="w-2 h-2 bg-green-500 rounded-full" />
                                 <div className="flex-1 text-sm">
                                     <p>Order completed</p>
                                     <p className="text-xs text-muted-foreground">5 minutes ago</p>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-4">
-                                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                <div className="w-2 h-2 bg-yellow-500 rounded-full" />
                                 <div className="flex-1 text-sm">
                                     <p>Payment pending</p>
                                     <p className="text-xs text-muted-foreground">10 minutes ago</p>

@@ -5,12 +5,12 @@
 'use client'
 
 import * as React from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { Organization } from '@/types/global'
 
 interface OrgProfileProps {

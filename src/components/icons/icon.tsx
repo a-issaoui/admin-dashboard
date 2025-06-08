@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import * as Icons from "@phosphor-icons/react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export type IconName = keyof typeof Icons;

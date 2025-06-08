@@ -4,17 +4,17 @@
 
 'use client'
 
-import * as React from 'react'
+import { Languages, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Languages, Check } from 'lucide-react'
+import * as React from 'react'
+import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
 import { useLocaleStore, useCurrentLocale, useIsRTL, useIsTransitioning } from '@/lib/stores' // FIXED: Import from stores
 import { cn } from '@/lib/utils'
 import type { LocaleCode } from '@/types/locale'

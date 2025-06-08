@@ -1,14 +1,14 @@
 // ============================================================================
-// src/app/admin/layout.tsx - OPTIMIZED with preloading
+// src/app/admin/layout.tsx - OPTIMIZED with preloading (FIXED)
 // ============================================================================
 
 import * as React from 'react'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { AppSidebar, AppSidebarPreloader } from '@/components/layout/admin/sidebar/app-sidebar'
-import { PageLanguageSelector } from '@/components/shared/page-language-selector'
-import { ModeToggle } from '@/components/shared/mode-toggle'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { AppSidebar, AppSidebarPreloader } from '@/components/layout/admin/sidebar/app-sidebar'
+import { ModeToggle } from '@/components/shared/mode-toggle'
+import { PageLanguageSelector } from '@/components/shared/page-language-selector'
 import { PreloadResources } from '@/components/shared/preload-resources'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 
 interface AdminLayoutProps {
     children: React.ReactNode
@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         <ErrorBoundary>
                             <React.Suspense fallback={
                                 <div className="flex items-center justify-center h-full">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                                 </div>
                             }>
                                 {children}

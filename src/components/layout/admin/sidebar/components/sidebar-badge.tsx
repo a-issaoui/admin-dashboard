@@ -3,8 +3,8 @@
 // ============================================================================
 
 import * as React from 'react'
-import { cn } from '@/lib/utils'
 import { BADGE_STYLES } from '@/lib/constants'
+import { cn } from '@/lib/utils'
 import type { Badge } from '@/types/sidebar'
 
 interface SidebarBadgeProps {

@@ -4,8 +4,14 @@
 
 'use client'
 
-import * as React from 'react'
+import { ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import * as React from 'react'
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent
+} from '@/components/ui/collapsible'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -13,17 +19,11 @@ import {
   SidebarMenu,
   useSidebar
 } from '@/components/ui/sidebar'
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent
-} from '@/components/ui/collapsible'
-import { ChevronRight } from 'lucide-react'
-import { SidebarItem } from './sidebar-item'
-import { SidebarActions } from './sidebar-actions'
 import { useSidebarStore } from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import type { SidebarGroup as SidebarGroupType } from '@/types/sidebar'
+import { SidebarActions } from './sidebar-actions'
+import { SidebarItem } from './sidebar-item'
 
 interface SidebarGroupProps {
   group: SidebarGroupType

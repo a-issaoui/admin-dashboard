@@ -1,5 +1,5 @@
 // ============================================================================
-// src/hooks/use-performance.ts - Performance optimization hooks (FIXED)
+// src/hooks/use-performance.ts - Performance optimization hooks (FIXED ESLint)
 // ============================================================================
 
 'use client'
@@ -14,16 +14,17 @@ export function useExpensiveMemo<T>(
     deps: React.DependencyList,
     debugName?: string
 ): T {
+     
     return React.useMemo(() => {
         if (process.env.NODE_ENV === 'development' && debugName) {
             const start = performance.now()
             const result = factory()
             const end = performance.now()
-            console.log(`🧮 ${debugName}: ${(end - start).toFixed(2)}ms`)
+            console.info(`🧮 ${debugName}: ${(end - start).toFixed(2)}ms`)
             return result
         }
         return factory()
-    }, [factory, debugName, ...deps]) // FIXED: Spread deps array
+    }, deps)
 }
 
 /**
@@ -43,12 +44,12 @@ export function useDebounce<T>(value: T, delay: number): T {
 /**
  * Hook for throttling function calls
  */
-export function useThrottle<T extends (...args: unknown[]) => unknown>( // FIXED: unknown instead of any
+export function useThrottle<T extends (...args: unknown[]) => unknown>(
     func: T,
     delay: number
 ): T {
     const lastCall = React.useRef<number>(0)
-    const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined) // FIXED: Provide initial value
+    const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
 
     return React.useCallback(
         ((...args: Parameters<T>) => {
@@ -65,6 +66,8 @@ export function useThrottle<T extends (...args: unknown[]) => unknown>( // FIXED
                     lastCall.current = Date.now()
                     func(...args)
                 }, delay - (now - lastCall.current))
+
+                return undefined as ReturnType<T>
             }
         }) as T,
         [func, delay]
@@ -74,7 +77,7 @@ export function useThrottle<T extends (...args: unknown[]) => unknown>( // FIXED
 /**
  * Hook for preventing unnecessary re-renders using shallow comparison
  */
-export function useShallowMemo<T extends Record<string, unknown>>(obj: T): T { // FIXED: unknown instead of any
+export function useShallowMemo<T extends Record<string, unknown>>(obj: T): T {
     const prevRef = React.useRef<T>(obj)
 
     return React.useMemo(() => {
@@ -83,7 +86,7 @@ export function useShallowMemo<T extends Record<string, unknown>>(obj: T): T { /
         }
         prevRef.current = obj
         return obj
-    }, [obj]) // FIXED: Include obj in dependencies
+    }, [obj])
 }
 
 /**
@@ -143,7 +146,7 @@ export function useRenderPerformance(componentName: string) {
         const renderTime = endTime - startTime.current
 
         if (process.env.NODE_ENV === 'development') {
-            console.log(
+            console.info(
                 `🎨 ${componentName} render #${renderCount.current}: ${renderTime.toFixed(2)}ms`
             )
         }
@@ -155,7 +158,7 @@ export function useRenderPerformance(componentName: string) {
 /**
  * Hook for lazy loading components with error boundary
  */
-export function useLazyComponent<T extends React.ComponentType<unknown>>( // FIXED: unknown instead of any
+export function useLazyComponent<T extends React.ComponentType<unknown>>(
     importFunc: () => Promise<{ default: T }>,
     fallback?: React.ComponentType
 ) {
@@ -196,11 +199,11 @@ export function useLazyComponent<T extends React.ComponentType<unknown>>( // FIX
 
     const LazyComponent = React.useMemo(() => {
         if (error) {
-            return fallback || (() => React.createElement('div', null, 'Error loading component')) // FIXED: Remove children prop
+            return fallback || (() => React.createElement('div', {}, 'Error loading component'))
         }
 
         if (!Component) {
-            return fallback || (() => React.createElement('div', null, 'Loading...')) // FIXED: Remove children prop
+            return fallback || (() => React.createElement('div', {}, 'Loading...'))
         }
 
         return Component
@@ -256,7 +259,7 @@ export function useVirtualScrolling<T>(
 }
 
 // Utility function for shallow comparison
-function shallowEqual<T extends Record<string, unknown>>(objA: T, objB: T): boolean { // FIXED: unknown instead of any
+function shallowEqual<T extends Record<string, unknown>>(objA: T, objB: T): boolean {
     const keysA = Object.keys(objA)
     const keysB = Object.keys(objB)
 

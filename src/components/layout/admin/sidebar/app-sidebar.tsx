@@ -6,14 +6,14 @@
 
 import * as React from 'react'
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarRail } from '@/components/ui/sidebar'
+import { orgData } from '@/data/org-data'
+import { sidebarData } from '@/data/sidebar-data'
+import { userData } from '@/data/user-data'
+import { useSidebarStore, useDirection, useIsRTL } from '@/lib/stores'
+import { cn } from '@/lib/utils'
 import { SidebarGroupComponent } from './components/sidebar-group'
 import { OrgProfile } from './org-profile'
 import { UserMenu } from './user-menu'
-import { useSidebarStore, useDirection, useIsRTL } from '@/lib/stores'
-import { sidebarData } from '@/data/sidebar-data'
-import { userData } from '@/data/user-data'
-import { orgData } from '@/data/org-data'
-import { cn } from '@/lib/utils'
 
 interface AppSidebarProps {
     variant?: 'sidebar' | 'floating' | 'inset'

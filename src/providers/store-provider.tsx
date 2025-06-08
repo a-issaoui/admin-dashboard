@@ -1,13 +1,13 @@
 // ============================================================================
-// src/providers/store-provider.tsx - OPTIMIZED with performance monitoring
+// src/providers/store-provider.tsx - OPTIMIZED with performance monitoring (FIXED)
 // ============================================================================
 
 'use client'
 
-import * as React from 'react'
 import { useLocale } from 'next-intl'
-import { useLocaleStore, useThemeStore } from '@/lib/stores'
+import * as React from 'react'
 import { useRenderPerformance } from '@/hooks/use-performance'
+import { useLocaleStore, useThemeStore } from '@/lib/stores'
 import type { LocaleCode } from '@/types/locale'
 
 interface StoreProviderProps {
@@ -80,19 +80,19 @@ function StoreProviderInner({ children }: StoreProviderProps) {
   if (!isInitialized) {
     return (
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
     )
   }
 
-  return <>{children}</>
+  return children
 }
 
 export function StoreProvider({ children }: StoreProviderProps) {
   return (
       <React.Suspense fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       }>
         <StoreProviderInner>

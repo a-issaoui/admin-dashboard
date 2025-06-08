@@ -4,13 +4,13 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from 'next/headers';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { headers } from 'next/headers';
 import "./globals.css";
-import { ThemeProvider } from "@/providers/theme-provider";
-import { StoreProvider } from "@/providers/store-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { StoreProvider } from "@/providers/store-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",

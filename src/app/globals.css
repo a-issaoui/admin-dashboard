@@ -1,7 +1,3 @@
-/* ============================================================================ */
-/* src/app/globals.css - OPTIMIZED with smooth RTL transitions (ENHANCED) */
-/* ============================================================================ */
-
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -97,18 +93,6 @@
   --sidebar-accent-foreground: oklch(0.8823 0.0571 254.1284);
   --sidebar-border: oklch(0.3715 0 0);
   --sidebar-ring: oklch(0.6231 0.1880 259.8145);
-  --font-sans: Inter, sans-serif;
-  --font-serif: Source Serif 4, serif;
-  --font-mono: JetBrains Mono, monospace;
-  --radius: 0.375rem;
-  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
-  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 }
 
 /* RTL-specific CSS variables */
@@ -181,8 +165,7 @@
 
   /* Enhanced smooth locale transitions with better performance */
   html {
-    transition:
-            direction var(--locale-transition-duration) var(--locale-transition-easing);
+    transition: direction var(--locale-transition-duration) var(--locale-transition-easing);
     transform-origin: var(--rtl-transform-origin);
   }
 
@@ -201,17 +184,13 @@
   }
 }
 
-/* ============================================================================ */
 /* Enhanced Sidebar optimizations with better RTL support */
-/* ============================================================================ */
-
 .sidebar-container {
   contain: layout style;
   will-change: transform;
   transform-origin: var(--rtl-transform-origin);
 }
 
-/* Improved RTL sidebar positioning */
 .sidebar-container[data-direction="rtl"] [data-slot="sidebar"] {
   transform-origin: right center;
 }
@@ -230,8 +209,7 @@
 }
 
 [data-slot="sidebar-content"] {
-  transition:
-          opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+  transition: opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
 }
 
 /* Optimized menu items with better RTL support */
@@ -333,8 +311,6 @@
           height var(--sidebar-transition-duration) var(--sidebar-transition-easing),
           opacity 200ms ease-in-out;
 }
-
-
 
 /* Reduce motion for accessibility with RTL consideration */
 @media (prefers-reduced-motion: reduce) {

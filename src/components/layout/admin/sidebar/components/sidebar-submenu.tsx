@@ -4,20 +4,20 @@
 
 'use client'
 
-import * as React from 'react'
 import Link from 'next/link'
-import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import * as React from 'react'
+import { Icon } from '@/components/icons'
 import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton
 } from '@/components/ui/sidebar'
-import { Icon } from '@/components/icons'
-import { SidebarBadge } from './sidebar-badge'
-import { SidebarActions } from './sidebar-actions'
 import { cn } from '@/lib/utils'
 import type { SidebarSubmenu } from '@/types/sidebar'
+import { SidebarActions } from './sidebar-actions'
+import { SidebarBadge } from './sidebar-badge'
 
 interface SidebarSubmenuProps {
   submenu: SidebarSubmenu[]

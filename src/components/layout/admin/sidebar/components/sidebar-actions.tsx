@@ -4,10 +4,11 @@
 
 'use client'
 
-import * as React from 'react'
-import { useTranslations } from 'next-intl'
 import { MoreHorizontal } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import * as React from 'react'
 import { toast } from 'sonner'
+import { Icon } from '@/components/icons'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,6 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenuAction } from '@/components/ui/sidebar'
-import { Icon } from '@/components/icons'
 import { useLocaleStore } from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import type { MenuAction } from '@/types/sidebar'
