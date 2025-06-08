@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/shared/page-language-selector.tsx - OPTIMIZED
+// src/components/shared/page-language-selector.tsx - OPTIMIZED (FIXED)
 // ============================================================================
 
 'use client'
@@ -15,7 +15,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { useLocaleStore, useCurrentLocale, useIsRTL, useIsTransitioning } from '@/lib/stores'
+import { useLocaleStore, useCurrentLocale, useIsRTL, useIsTransitioning } from '@/lib/stores' // FIXED: Import from stores
 import { cn } from '@/lib/utils'
 import type { LocaleCode } from '@/types/locale'
 

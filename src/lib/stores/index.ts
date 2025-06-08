@@ -1,5 +1,5 @@
 // ============================================================================
-// src/lib/stores/index.ts - FIXED
+// src/lib/stores/index.ts - FIXED with all exports
 // ============================================================================
 
 import * as React from 'react'
@@ -7,9 +7,26 @@ import { getCookie } from 'cookies-next'
 import { useThemeStore } from './theme-store'
 import { useLocaleStore } from './locale-store'
 
+// Export all stores and their hooks
 export { useLocaleStore } from './locale-store'
 export { useSidebarStore } from './sidebar-store'
 export { useThemeStore } from './theme-store'
+
+// Export optimized locale hooks
+export {
+    useCurrentLocale,
+    useDirection,
+    useIsRTL,
+    useIsTransitioning
+} from './locale-store'
+
+// Export optimized sidebar hooks
+export {
+    useSidebarData,
+    useSidebarProcessedData,
+    useSidebarCollapsedStates,
+    useIsSidebarDataLoaded
+} from './sidebar-store'
 
 export type { LocaleCode, LocaleConfig } from '@/types/locale'
 export type { SidebarData, SidebarMenuItem, SidebarGroup } from '@/types/sidebar'

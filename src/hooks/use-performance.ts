@@ -1,5 +1,5 @@
 // ============================================================================
-// src/hooks/use-performance.ts - Performance optimization hooks
+// src/hooks/use-performance.ts - Performance optimization hooks (FIXED)
 // ============================================================================
 
 'use client'
@@ -23,7 +23,7 @@ export function useExpensiveMemo<T>(
             return result
         }
         return factory()
-    }, deps)
+    }, [factory, debugName, ...deps]) // FIXED: Spread deps array
 }
 
 /**
@@ -43,12 +43,12 @@ export function useDebounce<T>(value: T, delay: number): T {
 /**
  * Hook for throttling function calls
  */
-export function useThrottle<T extends (...args: any[]) => any>(
+export function useThrottle<T extends (...args: unknown[]) => unknown>( // FIXED: unknown instead of any
     func: T,
     delay: number
 ): T {
     const lastCall = React.useRef<number>(0)
-    const timeoutRef = React.useRef<NodeJS.Timeout>()
+    const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined) // FIXED: Provide initial value
 
     return React.useCallback(
         ((...args: Parameters<T>) => {
@@ -58,7 +58,9 @@ export function useThrottle<T extends (...args: any[]) => any>(
                 lastCall.current = now
                 return func(...args)
             } else {
-                clearTimeout(timeoutRef.current)
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current)
+                }
                 timeoutRef.current = setTimeout(() => {
                     lastCall.current = Date.now()
                     func(...args)
@@ -72,7 +74,7 @@ export function useThrottle<T extends (...args: any[]) => any>(
 /**
  * Hook for preventing unnecessary re-renders using shallow comparison
  */
-export function useShallowMemo<T extends Record<string, any>>(obj: T): T {
+export function useShallowMemo<T extends Record<string, unknown>>(obj: T): T { // FIXED: unknown instead of any
     const prevRef = React.useRef<T>(obj)
 
     return React.useMemo(() => {
@@ -81,7 +83,7 @@ export function useShallowMemo<T extends Record<string, any>>(obj: T): T {
         }
         prevRef.current = obj
         return obj
-    }, Object.values(obj))
+    }, [obj]) // FIXED: Include obj in dependencies
 }
 
 /**
@@ -153,7 +155,7 @@ export function useRenderPerformance(componentName: string) {
 /**
  * Hook for lazy loading components with error boundary
  */
-export function useLazyComponent<T extends React.ComponentType<any>>(
+export function useLazyComponent<T extends React.ComponentType<unknown>>( // FIXED: unknown instead of any
     importFunc: () => Promise<{ default: T }>,
     fallback?: React.ComponentType
 ) {
@@ -194,11 +196,11 @@ export function useLazyComponent<T extends React.ComponentType<any>>(
 
     const LazyComponent = React.useMemo(() => {
         if (error) {
-            return fallback || (() => React.createElement('div', { children: 'Error loading component' }))
+            return fallback || (() => React.createElement('div', null, 'Error loading component')) // FIXED: Remove children prop
         }
 
         if (!Component) {
-            return fallback || (() => React.createElement('div', { children: 'Loading...' }))
+            return fallback || (() => React.createElement('div', null, 'Loading...')) // FIXED: Remove children prop
         }
 
         return Component
@@ -254,7 +256,7 @@ export function useVirtualScrolling<T>(
 }
 
 // Utility function for shallow comparison
-function shallowEqual<T extends Record<string, any>>(objA: T, objB: T): boolean {
+function shallowEqual<T extends Record<string, unknown>>(objA: T, objB: T): boolean { // FIXED: unknown instead of any
     const keysA = Object.keys(objA)
     const keysB = Object.keys(objB)
 

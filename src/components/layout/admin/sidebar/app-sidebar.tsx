@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/app-sidebar.tsx - OPTIMIZED
+// src/components/layout/admin/sidebar/app-sidebar.tsx - OPTIMIZED (FIXED)
 // ============================================================================
 
 'use client'
@@ -98,8 +98,8 @@ export function AppSidebar({
     )
 }
 
-// Preload component to improve initial render
-export const AppSidebarPreloader = React.memo(() => {
+// Preload component to improve initial render - FIXED display name
+export const AppSidebarPreloader = React.memo(function AppSidebarPreloader() {
     const { setData } = useSidebarStore()
 
     React.useEffect(() => {

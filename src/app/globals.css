@@ -1,5 +1,5 @@
 /* ============================================================================ */
-/* src/app/globals.css - OPTIMIZED with smooth transitions */
+/* src/app/globals.css - OPTIMIZED with smooth RTL transitions (ENHANCED) */
 /* ============================================================================ */
 
 @import "tailwindcss";
@@ -53,9 +53,15 @@
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 
-  /* Transition variables */
-  --locale-transition-duration: 300ms;
-  --locale-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Enhanced transition variables for RTL support */
+  --locale-transition-duration: 350ms;
+  --locale-transition-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --sidebar-transition-duration: 300ms;
+  --sidebar-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* RTL-specific variables */
+  --rtl-transform-origin: left;
+  --rtl-sidebar-position: left;
 }
 
 .dark {
@@ -103,6 +109,12 @@
   --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+}
+
+/* RTL-specific CSS variables */
+[dir="rtl"] {
+  --rtl-transform-origin: right;
+  --rtl-sidebar-position: right;
 }
 
 @theme inline {
@@ -167,9 +179,11 @@
     @apply bg-background text-foreground;
   }
 
-  /* Smooth locale transitions */
+  /* Enhanced smooth locale transitions with better performance */
   html {
-    transition: direction var(--locale-transition-duration) var(--locale-transition-easing);
+    transition:
+            direction var(--locale-transition-duration) var(--locale-transition-easing);
+    transform-origin: var(--rtl-transform-origin);
   }
 
   html.locale-transitioning {
@@ -181,45 +195,65 @@
             transform var(--locale-transition-duration) var(--locale-transition-easing),
             text-align var(--locale-transition-duration) var(--locale-transition-easing),
             margin var(--locale-transition-duration) var(--locale-transition-easing),
-            padding var(--locale-transition-duration) var(--locale-transition-easing);
+            padding var(--locale-transition-duration) var(--locale-transition-easing),
+            left var(--locale-transition-duration) var(--locale-transition-easing),
+            right var(--locale-transition-duration) var(--locale-transition-easing);
   }
 }
 
 /* ============================================================================ */
-/* Sidebar optimizations */
+/* Enhanced Sidebar optimizations with better RTL support */
 /* ============================================================================ */
 
 .sidebar-container {
   contain: layout style;
   will-change: transform;
+  transform-origin: var(--rtl-transform-origin);
 }
 
-.sidebar-container[data-direction="rtl"] {
-  transform: scaleX(-1);
+/* Improved RTL sidebar positioning */
+.sidebar-container[data-direction="rtl"] [data-slot="sidebar"] {
+  transform-origin: right center;
 }
 
-.sidebar-container[data-direction="rtl"] > * {
-  transform: scaleX(-1);
+.sidebar-container[data-direction="ltr"] [data-slot="sidebar"] {
+  transform-origin: left center;
 }
 
-/* Optimize sidebar transitions */
+/* Enhanced sidebar transitions */
 [data-slot="sidebar"] {
   transition:
-          width var(--locale-transition-duration) var(--locale-transition-easing),
-          transform var(--locale-transition-duration) var(--locale-transition-easing);
+          width var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+          transform var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+          left var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+          right var(--sidebar-transition-duration) var(--sidebar-transition-easing);
 }
 
 [data-slot="sidebar-content"] {
-  transition: opacity var(--locale-transition-duration) var(--locale-transition-easing);
+  transition:
+          opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
 }
 
-/* Optimize menu items */
+/* Optimized menu items with better RTL support */
 [data-slot="sidebar-menu-button"] {
   contain: layout;
+  transition:
+          background-color 150ms ease-in-out,
+          color 150ms ease-in-out,
+          transform 150ms ease-in-out;
 }
 
 [data-slot="sidebar-menu-item"] {
   contain: layout;
+}
+
+/* RTL-aware menu button states */
+[dir="rtl"] [data-slot="sidebar-menu-button"] {
+  text-align: right;
+}
+
+[dir="ltr"] [data-slot="sidebar-menu-button"] {
+  text-align: left;
 }
 
 /* Performance optimizations */
@@ -231,7 +265,7 @@
   contain: layout size;
 }
 
-/* Prevent layout thrashing during transitions */
+/* Enhanced layout containment during transitions */
 .locale-transitioning [data-slot="sidebar"] {
   contain: strict;
 }
@@ -240,7 +274,7 @@
   opacity: 0.8;
 }
 
-/* Smooth text direction changes */
+/* Smooth text direction changes with better performance */
 [dir="rtl"] {
   text-align: right;
 }
@@ -249,18 +283,29 @@
   text-align: left;
 }
 
-/* Optimize dropdown positioning */
+/* Enhanced dropdown positioning for RTL */
 [data-slot="dropdown-menu-content"] {
-  transition: transform var(--locale-transition-duration) var(--locale-transition-easing);
+  transition:
+          transform var(--locale-transition-duration) var(--locale-transition-easing),
+          opacity 200ms ease-in-out;
 }
 
-/* Skeleton loading optimizations */
+[dir="rtl"] [data-slot="dropdown-menu-content"] {
+  transform-origin: top right;
+}
+
+[dir="ltr"] [data-slot="dropdown-menu-content"] {
+  transform-origin: top left;
+}
+
+/* Enhanced skeleton loading with better performance */
 [data-slot="skeleton"] {
   contain: layout size;
-  background: linear-gradient(90deg,
-  var(--accent) 25%,
-  transparent 50%,
-  var(--accent) 75%
+  background: linear-gradient(
+          90deg,
+          var(--accent) 25%,
+          transparent 50%,
+          var(--accent) 75%
   );
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s infinite;
@@ -271,7 +316,27 @@
   100% { background-position: -200% 0; }
 }
 
-/* Reduce motion for accessibility */
+/* Enhanced RTL animations */
+[dir="rtl"] [data-slot="skeleton"] {
+  background: linear-gradient(
+          -90deg,
+          var(--accent) 25%,
+          transparent 50%,
+          var(--accent) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* Optimized collapsible animations */
+[data-slot="collapsible-content"] {
+  transition:
+          height var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+          opacity 200ms ease-in-out;
+}
+
+
+
+/* Reduce motion for accessibility with RTL consideration */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -281,19 +346,57 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  html.locale-transitioning * {
+    transition: none !important;
+  }
 }
 
-/* Performance: Use transform instead of changing layout properties */
-.rtl-flip {
-  transform: scaleX(-1);
+/* Performance: GPU acceleration for smooth transitions */
+.sidebar-container,
+[data-slot="sidebar"],
+[data-slot="sidebar-content"],
+[data-slot="dropdown-menu-content"] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
-.rtl-flip > * {
-  transform: scaleX(-1);
-}
-
-/* Optimize tooltip positioning */
+/* Enhanced tooltip positioning with RTL support */
 [data-slot="tooltip-content"] {
   contain: layout size;
   will-change: transform, opacity;
+  transform-origin: var(--rtl-transform-origin);
+}
+
+/* Optimized focus management for RTL */
+[dir="rtl"] :focus-visible {
+  outline-offset: -2px;
+}
+
+[dir="ltr"] :focus-visible {
+  outline-offset: 2px;
+}
+
+/* Enhanced loading states */
+.locale-transitioning {
+  cursor: wait;
+}
+
+.locale-transitioning [data-slot="sidebar-menu-button"] {
+  pointer-events: none;
+}
+
+/* Smooth badge transitions */
+[data-slot="sidebar-badge"] {
+  transition:
+          transform 200ms ease-in-out,
+          opacity 200ms ease-in-out;
+}
+
+[dir="rtl"] [data-slot="sidebar-badge"] {
+  transform-origin: right center;
+}
+
+[dir="ltr"] [data-slot="sidebar-badge"] {
+  transform-origin: left center;
 }

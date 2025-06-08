@@ -1,5 +1,5 @@
 // ============================================================================
-// src/lib/stores/sidebar-store.ts - OPTIMIZED with caching
+// src/lib/stores/sidebar-store.ts - OPTIMIZED with caching (FIXED)
 // ============================================================================
 
 import { create } from 'zustand'
@@ -16,7 +16,7 @@ interface CachedSidebarStore extends SidebarStore {
 export const useSidebarStore = create<CachedSidebarStore>()(
     subscribeWithSelector(
         persist(
-            (set, get) => ({
+            (set) => ({
                 // State
                 data: [],
                 processedData: [],

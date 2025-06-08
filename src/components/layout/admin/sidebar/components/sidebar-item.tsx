@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/components/sidebar-item.tsx - OPTIMIZED
+// src/components/layout/admin/sidebar/components/sidebar-item.tsx - OPTIMIZED (FIXED)
 // ============================================================================
 
 'use client'
@@ -22,7 +22,7 @@ import { Icon } from '@/components/icons'
 import { SidebarBadge } from './sidebar-badge'
 import { SidebarActions } from './sidebar-actions'
 import { SidebarSubmenuComponent } from './sidebar-submenu'
-import { useSidebarCollapsedStates } from '@/lib/stores'
+import { useSidebarCollapsedStates } from '@/lib/stores' // FIXED: Import from stores
 import { cn } from '@/lib/utils'
 import type { SidebarMenuItem as SidebarMenuItemType } from '@/types/sidebar'
 
