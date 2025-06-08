@@ -8,24 +8,32 @@ import * as React from 'react'
 
 /**
  * Hook for memoizing expensive computations with dependencies
- * Note: factory and debugName are intentionally excluded from deps to prevent infinite loops
+ * Uses a stable factory function to prevent infinite re-renders
  */
 export function useExpensiveMemo<T>(
     factory: () => T,
     deps: React.DependencyList,
     debugName?: string
 ): T {
-     
+    // Use a ref to store the factory function to prevent it from being a dependency
+    const factoryRef = React.useRef(factory)
+    const debugNameRef = React.useRef(debugName)
+
+    // Update refs on each render
+    factoryRef.current = factory
+    debugNameRef.current = debugName
+
     return React.useMemo(() => {
-        if (process.env.NODE_ENV === 'development' && debugName) {
+        if (process.env.NODE_ENV === 'development' && debugNameRef.current) {
             const start = performance.now()
-            const result = factory()
+            const result = factoryRef.current()
             const end = performance.now()
-            console.info(`🧮 ${debugName}: ${(end - start).toFixed(2)}ms`)
+            console.info(`🧮 ${debugNameRef.current}: ${(end - start).toFixed(2)}ms`)
             return result
         }
-        return factory()
-    }, deps) // deps is intentionally from parameter, not including factory/debugName
+        return factoryRef.current()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, deps) // Only deps should be in the dependency array
 }
 
 /**
@@ -105,13 +113,7 @@ export function useIntersectionObserver(
         threshold: 0.1,
         rootMargin: '50px',
         ...options
-    }), [
-        options.threshold,
-        options.rootMargin,
-        options.root,
-        // Include other stable option properties
-        JSON.stringify(options.thresholds)
-    ])
+    }), [options])
 
     React.useEffect(() => {
         const element = elementRef.current
@@ -176,12 +178,9 @@ export function useLazyComponent<T extends React.ComponentType<unknown>>(
     const [error, setError] = React.useState<Error | null>(null)
     const [isLoading, setIsLoading] = React.useState(false)
 
-    // Memoize the import function to prevent infinite re-renders
-    const memoizedImportFunc = React.useCallback(
-        () => importFunc(),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [] // Empty deps array since importFunc should be stable
-    )
+    // Use ref to store the import function to prevent it from being a dependency
+    const importFuncRef = React.useRef(importFunc)
+    importFuncRef.current = importFunc
 
     React.useEffect(() => {
         let isMounted = true
@@ -191,7 +190,7 @@ export function useLazyComponent<T extends React.ComponentType<unknown>>(
                 setIsLoading(true)
                 setError(null)
 
-                const { default: LoadedComponent } = await memoizedImportFunc()
+                const { default: LoadedComponent } = await importFuncRef.current()
 
                 if (isMounted) {
                     setComponent(() => LoadedComponent)
@@ -212,7 +211,8 @@ export function useLazyComponent<T extends React.ComponentType<unknown>>(
         return () => {
             isMounted = false
         }
-    }, [memoizedImportFunc])
+        // Empty dependency array since we're using a ref for the import function
+    }, [])
 
     const LazyComponent = React.useMemo(() => {
         if (error) {
