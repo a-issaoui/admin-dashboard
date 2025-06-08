@@ -1,3 +1,7 @@
+/* ============================================================================ */
+/* src/app/globals.css - OPTIMIZED with smooth transitions */
+/* ============================================================================ */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -48,6 +52,10 @@
   --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+  /* Transition variables */
+  --locale-transition-duration: 300ms;
+  --locale-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dark {
@@ -157,9 +165,135 @@
 
   body {
     @apply bg-background text-foreground;
+  }
 
+  /* Smooth locale transitions */
+  html {
+    transition: direction var(--locale-transition-duration) var(--locale-transition-easing);
+  }
+
+  html.locale-transitioning {
+    pointer-events: none;
+  }
+
+  html.locale-transitioning * {
+    transition:
+            transform var(--locale-transition-duration) var(--locale-transition-easing),
+            text-align var(--locale-transition-duration) var(--locale-transition-easing),
+            margin var(--locale-transition-duration) var(--locale-transition-easing),
+            padding var(--locale-transition-duration) var(--locale-transition-easing);
   }
 }
-  /*
-* { border: 1px solid black; }
-*/
+
+/* ============================================================================ */
+/* Sidebar optimizations */
+/* ============================================================================ */
+
+.sidebar-container {
+  contain: layout style;
+  will-change: transform;
+}
+
+.sidebar-container[data-direction="rtl"] {
+  transform: scaleX(-1);
+}
+
+.sidebar-container[data-direction="rtl"] > * {
+  transform: scaleX(-1);
+}
+
+/* Optimize sidebar transitions */
+[data-slot="sidebar"] {
+  transition:
+          width var(--locale-transition-duration) var(--locale-transition-easing),
+          transform var(--locale-transition-duration) var(--locale-transition-easing);
+}
+
+[data-slot="sidebar-content"] {
+  transition: opacity var(--locale-transition-duration) var(--locale-transition-easing);
+}
+
+/* Optimize menu items */
+[data-slot="sidebar-menu-button"] {
+  contain: layout;
+}
+
+[data-slot="sidebar-menu-item"] {
+  contain: layout;
+}
+
+/* Performance optimizations */
+.sidebar-badge {
+  contain: layout size;
+}
+
+.sidebar-icon {
+  contain: layout size;
+}
+
+/* Prevent layout thrashing during transitions */
+.locale-transitioning [data-slot="sidebar"] {
+  contain: strict;
+}
+
+.locale-transitioning [data-slot="sidebar-content"] {
+  opacity: 0.8;
+}
+
+/* Smooth text direction changes */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="ltr"] {
+  text-align: left;
+}
+
+/* Optimize dropdown positioning */
+[data-slot="dropdown-menu-content"] {
+  transition: transform var(--locale-transition-duration) var(--locale-transition-easing);
+}
+
+/* Skeleton loading optimizations */
+[data-slot="skeleton"] {
+  contain: layout size;
+  background: linear-gradient(90deg,
+  var(--accent) 25%,
+  transparent 50%,
+  var(--accent) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Performance: Use transform instead of changing layout properties */
+.rtl-flip {
+  transform: scaleX(-1);
+}
+
+.rtl-flip > * {
+  transform: scaleX(-1);
+}
+
+/* Optimize tooltip positioning */
+[data-slot="tooltip-content"] {
+  contain: layout size;
+  will-change: transform, opacity;
+}

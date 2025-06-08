@@ -1,5 +1,5 @@
 // ============================================================================
-// src/providers/store-provider.tsx
+// src/providers/store-provider.tsx - OPTIMIZED with performance monitoring
 // ============================================================================
 
 'use client'
@@ -7,41 +7,97 @@
 import * as React from 'react'
 import { useLocale } from 'next-intl'
 import { useLocaleStore, useThemeStore } from '@/lib/stores'
+import { useRenderPerformance } from '@/hooks/use-performance'
 import type { LocaleCode } from '@/types/locale'
 
 interface StoreProviderProps {
   children: React.ReactNode
 }
 
-export function StoreProvider({ children }: StoreProviderProps) {
+function StoreProviderInner({ children }: StoreProviderProps) {
+  useRenderPerformance('StoreProvider')
+
   const locale = useLocale() as LocaleCode
-  const setLocale = useLocaleStore(state => state.setLocale)
-  const setTheme = useThemeStore(state => state.setTheme)
+  const [isInitialized, setIsInitialized] = React.useState(false)
 
+  // Get stable references to prevent unnecessary re-renders
+  const setLocale = React.useCallback(
+      (locale: LocaleCode) => useLocaleStore.getState().setLocale(locale),
+      []
+  )
+
+  const setTheme = React.useCallback(
+      (theme: 'light' | 'dark' | 'system') => useThemeStore.getState().setTheme(theme),
+      []
+  )
+
+  // Initialize stores only once
   React.useEffect(() => {
-    // Initialize locale from next-intl
-    setLocale(locale)
+    if (isInitialized) return
 
-    // Initialize theme
-    const savedTheme = localStorage.getItem('theme-store')
-    if (savedTheme) {
+    const initializeStores = async () => {
       try {
-        const parsed = JSON.parse(savedTheme)
-        setTheme(parsed.state?.theme || 'system')
-      } catch {
-        setTheme('system')
+        // Initialize locale from next-intl
+        await setLocale(locale)
+
+        // Initialize theme from localStorage or system preference
+        const savedTheme = localStorage.getItem('theme-store')
+        if (savedTheme) {
+          try {
+            const parsed = JSON.parse(savedTheme)
+            await setTheme(parsed.state?.theme || 'system')
+          } catch {
+            await setTheme('system')
+          }
+        } else {
+          await setTheme('system')
+        }
+
+        // Update document attributes for better CSS support
+        const direction = locale === 'ar' ? 'rtl' : 'ltr'
+        const root = document.documentElement
+
+        // Use batch updates to prevent layout thrashing
+        requestAnimationFrame(() => {
+          root.lang = locale
+          root.dir = direction
+          root.setAttribute('data-locale', locale)
+          root.setAttribute('data-direction', direction)
+        })
+
+        setIsInitialized(true)
+      } catch (error) {
+        console.error('Failed to initialize stores:', error)
+        // Set initialized anyway to prevent infinite loops
+        setIsInitialized(true)
       }
-    } else {
-      setTheme('system')
     }
 
-    // Update document attributes for better CSS support
-    const direction = locale === 'ar' ? 'rtl' : 'ltr'
-    document.documentElement.lang = locale
-    document.documentElement.dir = direction
-    document.documentElement.setAttribute('data-locale', locale)
-    document.documentElement.setAttribute('data-direction', direction)
-  }, [locale, setLocale, setTheme])
+    initializeStores()
+  }, [locale, setLocale, setTheme, isInitialized])
+
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+    )
+  }
 
   return <>{children}</>
+}
+
+export function StoreProvider({ children }: StoreProviderProps) {
+  return (
+      <React.Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      }>
+        <StoreProviderInner>
+          {children}
+        </StoreProviderInner>
+      </React.Suspense>
+  )
 }

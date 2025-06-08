@@ -1,60 +1,87 @@
 // ============================================================================
-// src/lib/stores/sidebar-store.ts - FIXED
+// src/lib/stores/sidebar-store.ts - OPTIMIZED with caching
 // ============================================================================
 
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { SidebarStore, SidebarData } from '@/types/sidebar'
+import { persist, subscribeWithSelector } from 'zustand/middleware'
+import type { SidebarStore, SidebarData, ProcessedGroup } from '@/types/sidebar'
 
-export const useSidebarStore = create<SidebarStore>()(
-    persist(
-        (set) => ({
-            // State
-            data: [],
-            collapsedStates: {},
-            isLoading: false,
-            error: null,
+interface CachedSidebarStore extends SidebarStore {
+    processedData: ProcessedGroup[]
+    isDataLoaded: boolean
+    setProcessedData: (data: ProcessedGroup[]) => void
+    invalidateCache: () => void
+}
 
-            // Actions
-            setData: (data: SidebarData) => {
-                set({ data })
-            },
+export const useSidebarStore = create<CachedSidebarStore>()(
+    subscribeWithSelector(
+        persist(
+            (set, get) => ({
+                // State
+                data: [],
+                processedData: [],
+                collapsedStates: {},
+                isLoading: false,
+                isDataLoaded: false,
+                error: null,
 
-            toggleCollapsed: (id: string) => {
-                set((state) => ({
-                    collapsedStates: {
-                        ...state.collapsedStates,
-                        [id]: !state.collapsedStates[id]
-                    }
-                }))
-            },
+                // Actions
+                setData: (data: SidebarData) => {
+                    set({ data, isDataLoaded: true })
+                },
 
-            setCollapsed: (id: string, collapsed: boolean) => {
-                set((state) => ({
-                    collapsedStates: {
-                        ...state.collapsedStates,
-                        [id]: collapsed
-                    }
-                }))
-            },
+                setProcessedData: (processedData: ProcessedGroup[]) => {
+                    set({ processedData })
+                },
 
-            resetCollapsed: () => {
-                set({ collapsedStates: {} })
-            },
+                toggleCollapsed: (id: string) => {
+                    set((state) => ({
+                        collapsedStates: {
+                            ...state.collapsedStates,
+                            [id]: !state.collapsedStates[id]
+                        }
+                    }))
+                },
 
-            setLoading: (loading: boolean) => {
-                set({ isLoading: loading })
-            },
+                setCollapsed: (id: string, collapsed: boolean) => {
+                    set((state) => ({
+                        collapsedStates: {
+                            ...state.collapsedStates,
+                            [id]: collapsed
+                        }
+                    }))
+                },
 
-            setError: (error: string | null) => {
-                set({ error })
+                resetCollapsed: () => {
+                    set({ collapsedStates: {} })
+                },
+
+                setLoading: (loading: boolean) => {
+                    set({ isLoading: loading })
+                },
+
+                setError: (error: string | null) => {
+                    set({ error })
+                },
+
+                invalidateCache: () => {
+                    set({ processedData: [] })
+                }
+            }),
+            {
+                name: 'sidebar-store',
+                partialize: (state) => ({
+                    collapsedStates: state.collapsedStates,
+                    data: state.data,
+                    isDataLoaded: state.isDataLoaded
+                })
             }
-        }),
-        {
-            name: 'sidebar-store',
-            partialize: (state) => ({
-                collapsedStates: state.collapsedStates
-            })
-        }
+        )
     )
 )
+
+// Optimized selectors
+export const useSidebarData = () => useSidebarStore(state => state.data)
+export const useSidebarProcessedData = () => useSidebarStore(state => state.processedData)
+export const useSidebarCollapsedStates = () => useSidebarStore(state => state.collapsedStates)
+export const useIsSidebarDataLoaded = () => useSidebarStore(state => state.isDataLoaded)

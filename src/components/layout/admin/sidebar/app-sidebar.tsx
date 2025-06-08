@@ -1,3 +1,7 @@
+// ============================================================================
+// src/components/layout/admin/sidebar/app-sidebar.tsx - OPTIMIZED
+// ============================================================================
+
 'use client'
 
 import * as React from 'react'
@@ -5,7 +9,7 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarRail } fr
 import { SidebarGroupComponent } from './components/sidebar-group'
 import { OrgProfile } from './org-profile'
 import { UserMenu } from './user-menu'
-import { useSidebarStore, useLocaleStore } from '@/lib/stores'
+import { useSidebarStore, useDirection, useIsRTL } from '@/lib/stores'
 import { sidebarData } from '@/data/sidebar-data'
 import { userData } from '@/data/user-data'
 import { orgData } from '@/data/org-data'
@@ -25,65 +29,83 @@ export function AppSidebar({
                            }: AppSidebarProps) {
     const { setData, data } = useSidebarStore()
 
-    // Subscribe to the entire locale store to ensure reactivity
-    const localeStore = useLocaleStore()
+    // Use optimized selectors
+    const direction = useDirection()
+    const isRTL = useIsRTL()
 
-    // Force component to re-render when locale changes
-    const [, forceUpdate] = React.useReducer(x => x + 1, 0)
+    // Memoize side calculation
+    const sidebarSide = React.useMemo(() => {
+        return isRTL ? 'right' : 'left'
+    }, [isRTL])
 
-    React.useEffect(() => {
-        setData(sidebarData)
-    }, [setData])
-
-    // Listen for locale changes and force update
-    React.useEffect(() => {
-        const unsubscribe = useLocaleStore.subscribe((state, prevState) => {
-            if (state.current !== prevState.current || state.direction !== prevState.direction) {
-                forceUpdate()
-            }
-        })
-        return unsubscribe
-    }, [])
-
-    // Calculate side based on current locale state
-    const isRTL = localeStore.direction === 'rtl'
-    const sidebarSide = isRTL ? 'right' : 'left'
-
+    // Memoize sorted groups - only recalculate when data changes
     const sortedGroups = React.useMemo(() => {
         return [...data].sort((a, b) => (a.order || 0) - (b.order || 0))
     }, [data])
 
+    // Initialize data only once
+    React.useEffect(() => {
+        if (data.length === 0) {
+            setData(sidebarData)
+        }
+    }, [setData, data.length])
+
+    // Prepare CSS custom properties for smooth transitions
+    const sidebarStyle = React.useMemo(() => ({
+        '--sidebar-direction': direction,
+        '--sidebar-transform-origin': isRTL ? 'right' : 'left'
+    } as React.CSSProperties), [direction, isRTL])
+
     return (
-        <Sidebar
-            variant={variant}
-            side={sidebarSide}
-            collapsible={collapsible}
-            className={cn(className)}
-            data-locale={localeStore.current}
-            data-direction={localeStore.direction}
-            key={`sidebar-${localeStore.current}-${localeStore.direction}`} // Force re-mount on locale change
+        <div
+            className="sidebar-container"
+            style={sidebarStyle}
+            data-direction={direction}
         >
-            <SidebarHeader className={cn(
-                "p-2",
-                isRTL && "flex-row-reverse"
-            )}>
-                <OrgProfile org={orgData} />
-            </SidebarHeader>
+            <Sidebar
+                variant={variant}
+                side={sidebarSide}
+                collapsible={collapsible}
+                className={cn(
+                    'transition-transform duration-300 ease-in-out',
+                    className
+                )}
+                data-locale-direction={direction}
+            >
+                <SidebarHeader className={cn(
+                    "p-2 transition-all duration-300",
+                    isRTL && "flex-row-reverse"
+                )}>
+                    <OrgProfile org={orgData} />
+                </SidebarHeader>
 
-            <SidebarContent>
-                {sortedGroups.map((group) => (
-                    <SidebarGroupComponent
-                        key={group.id}
-                        group={group}
-                    />
-                ))}
-            </SidebarContent>
+                <SidebarContent className="transition-all duration-300">
+                    {sortedGroups.map((group) => (
+                        <SidebarGroupComponent
+                            key={group.id}
+                            group={group}
+                        />
+                    ))}
+                </SidebarContent>
 
-            <SidebarFooter className="p-2">
-                <UserMenu user={userData} />
-            </SidebarFooter>
+                <SidebarFooter className="p-2 transition-all duration-300">
+                    <UserMenu user={userData} />
+                </SidebarFooter>
 
-            <SidebarRail />
-        </Sidebar>
+                <SidebarRail />
+            </Sidebar>
+        </div>
     )
 }
+
+// Preload component to improve initial render
+export const AppSidebarPreloader = React.memo(() => {
+    const { setData } = useSidebarStore()
+
+    React.useEffect(() => {
+        // Preload sidebar data
+        setData(sidebarData)
+    }, [setData])
+
+    return null
+})
