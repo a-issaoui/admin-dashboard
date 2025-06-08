@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/app-sidebar.tsx - OPTIMIZED (FIXED)
+// src/components/layout/admin/sidebar/app-sidebar.tsx - OPTIMIZED
 // ============================================================================
 
 'use client'
@@ -43,12 +43,10 @@ export function AppSidebar({
         return [...data].sort((a, b) => (a.order || 0) - (b.order || 0))
     }, [data])
 
-    // Initialize data only once
-    React.useEffect(() => {
-        if (data.length === 0) {
-            setData(sidebarData)
-        }
-    }, [setData, data.length])
+    // Initialize data immediately without conditional check
+    React.useLayoutEffect(() => {
+        setData(sidebarData)
+    }, [setData])
 
     // Prepare CSS custom properties for smooth transitions
     const sidebarStyle = React.useMemo(() => ({
@@ -67,19 +65,19 @@ export function AppSidebar({
                 side={sidebarSide}
                 collapsible={collapsible}
                 className={cn(
-                    'transition-transform duration-300 ease-in-out',
+                    // Remove transition to prevent flashing
                     className
                 )}
                 data-locale-direction={direction}
             >
                 <SidebarHeader className={cn(
-                    "p-2 transition-all duration-300",
+                    "p-2",
                     isRTL && "flex-row-reverse"
                 )}>
                     <OrgProfile org={orgData} />
                 </SidebarHeader>
 
-                <SidebarContent className="transition-all duration-300">
+                <SidebarContent>
                     {sortedGroups.map((group) => (
                         <SidebarGroupComponent
                             key={group.id}
@@ -88,7 +86,7 @@ export function AppSidebar({
                     ))}
                 </SidebarContent>
 
-                <SidebarFooter className="p-2 transition-all duration-300">
+                <SidebarFooter className="p-2">
                     <UserMenu user={userData} />
                 </SidebarFooter>
 
@@ -97,15 +95,3 @@ export function AppSidebar({
         </div>
     )
 }
-
-// Preload component to improve initial render - FIXED display name
-export const AppSidebarPreloader = React.memo(function AppSidebarPreloader() {
-    const { setData } = useSidebarStore()
-
-    React.useEffect(() => {
-        // Preload sidebar data
-        setData(sidebarData)
-    }, [setData])
-
-    return null
-})

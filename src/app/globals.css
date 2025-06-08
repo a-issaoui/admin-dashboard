@@ -50,9 +50,10 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 
   /* Enhanced transition variables for RTL support */
-  --locale-transition-duration: 350ms;
+  /* Optimized transition variables */
+  --locale-transition-duration: 200ms; /* Reduced from 350ms */
   --locale-transition-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --sidebar-transition-duration: 300ms;
+  --sidebar-transition-duration: 200ms; /* Reduced from 300ms */
   --sidebar-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* RTL-specific variables */
@@ -153,6 +154,11 @@
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
 }
+/* RTL-specific CSS variables */
+[dir="rtl"] {
+  --rtl-transform-origin: right;
+  --rtl-sidebar-position: right;
+}
 
 @layer base {
   * {
@@ -163,32 +169,32 @@
     @apply bg-background text-foreground;
   }
 
-  /* Enhanced smooth locale transitions with better performance */
+  /* OPTIMIZED: Only transition direction when it actually changes */
   html {
-    transition: direction var(--locale-transition-duration) var(--locale-transition-easing);
+    /* Remove automatic direction transition */
     transform-origin: var(--rtl-transform-origin);
   }
 
+  /* Only apply transitions during actual locale changes */
   html.locale-transitioning {
     pointer-events: none;
+    transition: direction var(--locale-transition-duration) var(--locale-transition-easing);
   }
 
-  html.locale-transitioning * {
+  /* OPTIMIZED: Reduce transition scope to only essential properties */
+  html.locale-transitioning [data-slot="sidebar"] {
     transition:
             transform var(--locale-transition-duration) var(--locale-transition-easing),
-            text-align var(--locale-transition-duration) var(--locale-transition-easing),
-            margin var(--locale-transition-duration) var(--locale-transition-easing),
-            padding var(--locale-transition-duration) var(--locale-transition-easing),
             left var(--locale-transition-duration) var(--locale-transition-easing),
             right var(--locale-transition-duration) var(--locale-transition-easing);
   }
 }
 
-/* Enhanced Sidebar optimizations with better RTL support */
+/* OPTIMIZED: Sidebar performance improvements */
 .sidebar-container {
   contain: layout style;
-  will-change: transform;
   transform-origin: var(--rtl-transform-origin);
+  /* Remove will-change as it can cause performance issues */
 }
 
 .sidebar-container[data-direction="rtl"] [data-slot="sidebar"] {
@@ -199,8 +205,13 @@
   transform-origin: left center;
 }
 
-/* Enhanced sidebar transitions */
+/* OPTIMIZED: Only apply transitions when needed */
 [data-slot="sidebar"] {
+  /* Remove default transitions that cause flashing */
+}
+
+/* Apply transitions only during locale changes */
+html.locale-transitioning [data-slot="sidebar"] {
   transition:
           width var(--sidebar-transition-duration) var(--sidebar-transition-easing),
           transform var(--sidebar-transition-duration) var(--sidebar-transition-easing),
@@ -208,24 +219,20 @@
           right var(--sidebar-transition-duration) var(--sidebar-transition-easing);
 }
 
-[data-slot="sidebar-content"] {
-  transition: opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
-}
-
-/* Optimized menu items with better RTL support */
+/* OPTIMIZED: Faster menu item interactions */
 [data-slot="sidebar-menu-button"] {
   contain: layout;
   transition:
-          background-color 150ms ease-in-out,
-          color 150ms ease-in-out,
-          transform 150ms ease-in-out;
+          background-color 100ms ease-in-out, /* Reduced from 150ms */
+          color 100ms ease-in-out,
+          transform 100ms ease-in-out;
 }
 
 [data-slot="sidebar-menu-item"] {
   contain: layout;
 }
 
-/* RTL-aware menu button states */
+/* OPTIMIZED: Immediate text alignment without transitions */
 [dir="rtl"] [data-slot="sidebar-menu-button"] {
   text-align: right;
 }
@@ -234,7 +241,7 @@
   text-align: left;
 }
 
-/* Performance optimizations */
+/* OPTIMIZED: Performance containment */
 .sidebar-badge {
   contain: layout size;
 }
@@ -243,16 +250,16 @@
   contain: layout size;
 }
 
-/* Enhanced layout containment during transitions */
-.locale-transitioning [data-slot="sidebar"] {
-  contain: strict;
+/* OPTIMIZED: Only apply strict containment during transitions */
+html.locale-transitioning [data-slot="sidebar"] {
+  contain: layout style; /* Reduced from strict */
 }
 
-.locale-transitioning [data-slot="sidebar-content"] {
-  opacity: 0.8;
+html.locale-transitioning [data-slot="sidebar-content"] {
+  opacity: 0.9; /* Less jarring than 0.8 */
 }
 
-/* Smooth text direction changes with better performance */
+/* OPTIMIZED: Immediate text direction changes */
 [dir="rtl"] {
   text-align: right;
 }
@@ -261,11 +268,9 @@
   text-align: left;
 }
 
-/* Enhanced dropdown positioning for RTL */
+/* OPTIMIZED: Faster dropdown positioning */
 [data-slot="dropdown-menu-content"] {
-  transition:
-          transform var(--locale-transition-duration) var(--locale-transition-easing),
-          opacity 200ms ease-in-out;
+  transition: opacity 150ms ease-in-out; /* Removed transform transition */
 }
 
 [dir="rtl"] [data-slot="dropdown-menu-content"] {
@@ -276,7 +281,7 @@
   transform-origin: top left;
 }
 
-/* Enhanced skeleton loading with better performance */
+/* OPTIMIZED: Faster skeleton loading */
 [data-slot="skeleton"] {
   contain: layout size;
   background: linear-gradient(
@@ -286,7 +291,7 @@
           var(--accent) 75%
   );
   background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s infinite;
+  animation: skeleton-shimmer 1.2s infinite; /* Faster animation */
 }
 
 @keyframes skeleton-shimmer {
@@ -294,7 +299,6 @@
   100% { background-position: -200% 0; }
 }
 
-/* Enhanced RTL animations */
 [dir="rtl"] [data-slot="skeleton"] {
   background: linear-gradient(
           -90deg,
@@ -305,14 +309,14 @@
   background-size: 200% 100%;
 }
 
-/* Optimized collapsible animations */
+/* OPTIMIZED: Faster collapsible animations */
 [data-slot="collapsible-content"] {
   transition:
           height var(--sidebar-transition-duration) var(--sidebar-transition-easing),
-          opacity 200ms ease-in-out;
+          opacity 150ms ease-in-out; /* Faster opacity */
 }
 
-/* Reduce motion for accessibility with RTL consideration */
+/* OPTIMIZED: Minimal transitions for accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -328,23 +332,28 @@
   }
 }
 
-/* Performance: GPU acceleration for smooth transitions */
-.sidebar-container,
-[data-slot="sidebar"],
-[data-slot="sidebar-content"],
-[data-slot="dropdown-menu-content"] {
+/* OPTIMIZED: Selective GPU acceleration */
+html.locale-transitioning .sidebar-container,
+html.locale-transitioning [data-slot="sidebar"] {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* Enhanced tooltip positioning with RTL support */
+/* Remove GPU acceleration when not transitioning to save resources */
+.sidebar-container:not(.locale-transitioning),
+[data-slot="sidebar"]:not(.locale-transitioning) {
+  transform: none;
+  backface-visibility: visible;
+}
+
+/* OPTIMIZED: Faster tooltip animations */
 [data-slot="tooltip-content"] {
   contain: layout size;
-  will-change: transform, opacity;
+  will-change: auto; /* Let browser decide */
   transform-origin: var(--rtl-transform-origin);
 }
 
-/* Optimized focus management for RTL */
+/* OPTIMIZED: Immediate focus management */
 [dir="rtl"] :focus-visible {
   outline-offset: -2px;
 }
@@ -353,20 +362,18 @@
   outline-offset: 2px;
 }
 
-/* Enhanced loading states */
-.locale-transitioning {
+/* OPTIMIZED: Minimal loading states */
+html.locale-transitioning {
   cursor: wait;
 }
 
-.locale-transitioning [data-slot="sidebar-menu-button"] {
+html.locale-transitioning [data-slot="sidebar-menu-button"] {
   pointer-events: none;
 }
 
-/* Smooth badge transitions */
+/* OPTIMIZED: Immediate badge positioning */
 [data-slot="sidebar-badge"] {
-  transition:
-          transform 200ms ease-in-out,
-          opacity 200ms ease-in-out;
+  transition: opacity 150ms ease-in-out; /* Only opacity transition */
 }
 
 [dir="rtl"] [data-slot="sidebar-badge"] {

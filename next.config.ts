@@ -1,3 +1,7 @@
+// ============================================================================
+// next.config.ts - OPTIMIZED for better performance
+// ============================================================================
+
 import createNextIntlPlugin from 'next-intl/plugin';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import type { NextConfig } from 'next';
@@ -5,8 +9,6 @@ import type { NextConfig } from 'next';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const isAnalyze = process.env.ANALYZE === 'true';
 
-// Note: withBundleAnalyzer is a Webpack plugin and will not run with Turbopack.
-// To analyze your bundle, you must build with Webpack (e.g., 'pnpm build').
 const bundleAnalyzerPlugin = withBundleAnalyzer({
   enabled: isAnalyze,
   openAnalyzer: false,
@@ -15,20 +17,23 @@ const bundleAnalyzerPlugin = withBundleAnalyzer({
 const nextConfig: NextConfig = {
   output: 'standalone',
 
-  // swcMinify is true by default in Next.js 15.
-  // compress is true by default for production builds.
+  // OPTIMIZED: Better performance settings
   poweredByHeader: false,
+  compress: true,
 
+  // OPTIMIZED: Image optimization
   images: {
     formats: ['image/webp', 'image/avif'],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     minimumCacheTTL: process.env.NODE_ENV === 'production' ? 86400 : 60,
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    // OPTIMIZED: Add unoptimized for development
+    unoptimized: process.env.NODE_ENV === 'development',
   },
 
-  // Turbopack-specific configurations for development (`next dev --turbopack`)
+  // OPTIMIZED: Turbopack configurations
   turbopack: {
     rules: {
       '*.svg': {
@@ -38,9 +43,8 @@ const nextConfig: NextConfig = {
     },
   },
 
-  // Experimental features
+  // OPTIMIZED: Experimental features for performance
   experimental: {
-    // optimizeCss is now default. optimizeServerReact is also default.
     optimizePackageImports: [
       '@phosphor-icons/react',
       'lucide-react',
@@ -56,17 +60,33 @@ const nextConfig: NextConfig = {
       'zustand'
     ],
     webVitalsAttribution: ['CLS', 'LCP'],
+    // OPTIMIZED: Enable optimizations (removed ppr for stable version)
+    optimizeCss: true,
+    optimizeServerReact: true,
+    // Note: ppr requires Next.js canary - removed for stable version
   },
 
-  // Add SVGR loader for Webpack builds (e.g., `next build`)
-  webpack: (config) => {
+  // OPTIMIZED: Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // SVG loader
     config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack'],
     });
+
+    // OPTIMIZED: Production optimizations
+    if (!dev && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+      };
+    }
+
     return config;
   },
 
+  // OPTIMIZED: Better caching headers
   headers: async () => [
     {
       source: '/(.*)',
@@ -85,6 +105,15 @@ const nextConfig: NextConfig = {
       source: '/_next/static/(.*)',
       headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
     },
+    // OPTIMIZED: Cache fonts and icons
+    {
+      source: '/fonts/(.*)',
+      headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+    },
+    {
+      source: '/icons/(.*)',
+      headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
+    },
   ],
 
   typescript: {
@@ -95,7 +124,13 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: false,
     dirs: ['src'],
   },
+
+  // OPTIMIZED: Compiler options for better performance
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
 };
 
-// Apply plugins. Bundle Analyzer is only applied for Webpack builds.
 export default bundleAnalyzerPlugin(withNextIntl(nextConfig));

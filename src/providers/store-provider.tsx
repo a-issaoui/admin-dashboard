@@ -1,12 +1,11 @@
 // ============================================================================
-// src/providers/store-provider.tsx - OPTIMIZED with performance monitoring (FIXED)
+// src/providers/store-provider.tsx - OPTIMIZED for performance
 // ============================================================================
 
 'use client'
 
 import { useLocale } from 'next-intl'
 import * as React from 'react'
-import { useRenderPerformance } from '@/hooks/use-performance'
 import { useLocaleStore, useThemeStore } from '@/lib/stores'
 import type { LocaleCode } from '@/types/locale'
 
@@ -14,90 +13,62 @@ interface StoreProviderProps {
   children: React.ReactNode
 }
 
-function StoreProviderInner({ children }: StoreProviderProps) {
-  useRenderPerformance('StoreProvider')
+// Move initialization logic outside component to prevent re-creation
+const initializeTheme = () => {
+  if (typeof window === 'undefined') return 'system'
 
-  const locale = useLocale() as LocaleCode
-  const [isInitialized, setIsInitialized] = React.useState(false)
-
-  // Get stable references to prevent unnecessary re-renders
-  const setLocale = React.useCallback(
-      (locale: LocaleCode) => useLocaleStore.getState().setLocale(locale),
-      []
-  )
-
-  const setTheme = React.useCallback(
-      (theme: 'light' | 'dark' | 'system') => useThemeStore.getState().setTheme(theme),
-      []
-  )
-
-  // Initialize stores only once
-  React.useEffect(() => {
-    if (isInitialized) return
-
-    const initializeStores = async () => {
-      try {
-        // Initialize locale from next-intl
-        await setLocale(locale)
-
-        // Initialize theme from localStorage or system preference
-        const savedTheme = localStorage.getItem('theme-store')
-        if (savedTheme) {
-          try {
-            const parsed = JSON.parse(savedTheme)
-            await setTheme(parsed.state?.theme || 'system')
-          } catch {
-            await setTheme('system')
-          }
-        } else {
-          await setTheme('system')
-        }
-
-        // Update document attributes for better CSS support
-        const direction = locale === 'ar' ? 'rtl' : 'ltr'
-        const root = document.documentElement
-
-        // Use batch updates to prevent layout thrashing
-        requestAnimationFrame(() => {
-          root.lang = locale
-          root.dir = direction
-          root.setAttribute('data-locale', locale)
-          root.setAttribute('data-direction', direction)
-        })
-
-        setIsInitialized(true)
-      } catch (error) {
-        console.error('Failed to initialize stores:', error)
-        // Set initialized anyway to prevent infinite loops
-        setIsInitialized(true)
-      }
+  try {
+    const saved = localStorage.getItem('theme-store')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return parsed.state?.theme || 'system'
     }
-
-    initializeStores()
-  }, [locale, setLocale, setTheme, isInitialized])
-
-  // Show loading state while initializing
-  if (!isInitialized) {
-    return (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
-    )
+  } catch {
+    // Fallback silently
   }
+  return 'system'
+}
 
-  return children
+const updateDocumentAttributes = (locale: LocaleCode, direction: 'ltr' | 'rtl') => {
+  if (typeof document === 'undefined') return
+
+  const root = document.documentElement
+
+  // Batch DOM updates in a single frame
+  requestAnimationFrame(() => {
+    root.lang = locale
+    root.dir = direction
+    root.setAttribute('data-locale', locale)
+    root.setAttribute('data-direction', direction)
+  })
 }
 
 export function StoreProvider({ children }: StoreProviderProps) {
-  return (
-      <React.Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
-      }>
-        <StoreProviderInner>
-          {children}
-        </StoreProviderInner>
-      </React.Suspense>
-  )
+  const locale = useLocale() as LocaleCode
+  const [isInitialized, setIsInitialized] = React.useState(false)
+
+  // Get store actions as stable references
+  const setLocale = useLocaleStore.getState().setLocale
+  const setTheme = useThemeStore.getState().setTheme
+
+  // Initialize stores synchronously on mount
+  React.useLayoutEffect(() => {
+    if (isInitialized) return
+
+    // Initialize locale immediately
+    setLocale(locale)
+
+    // Initialize theme immediately
+    const theme = initializeTheme()
+    setTheme(theme)
+
+    // Update document attributes
+    const direction = locale === 'ar' ? 'rtl' : 'ltr'
+    updateDocumentAttributes(locale, direction)
+
+    setIsInitialized(true)
+  }, [locale, setLocale, setTheme, isInitialized])
+
+  // Don't show loading state - render immediately
+  return <>{children}</>
 }

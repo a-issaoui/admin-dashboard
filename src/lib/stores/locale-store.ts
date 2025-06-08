@@ -1,10 +1,10 @@
 // ============================================================================
-// src/lib/stores/locale-store.ts - OPTIMIZED
+// src/lib/stores/locale-store.ts - OPTIMIZED for smooth transitions
 // ============================================================================
 
 import { setCookie } from 'cookies-next'
 import { create } from 'zustand'
-import { persist, subscribeWithSelector } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import type { LocaleCode, LocaleConfig, LocaleState } from '@/types/locale'
 
 const LOCALES: LocaleConfig[] = [
@@ -37,7 +37,8 @@ const LOCALE_COOKIE = 'locale'
 interface LocaleStore extends LocaleState {
     locales: LocaleConfig[]
     isTransitioning: boolean
-    setLocale: (locale: LocaleCode) => Promise<void>
+    setLocale: (locale: LocaleCode) => void
+    setLocaleAsync: (locale: LocaleCode) => Promise<void>
     getCurrentLocale: () => LocaleConfig
     isRTL: () => boolean
     startTransition: () => void
@@ -45,95 +46,127 @@ interface LocaleStore extends LocaleState {
 }
 
 export const useLocaleStore = create<LocaleStore>()(
-    subscribeWithSelector(
-        persist(
-            (set, get) => ({
-                // State
-                current: DEFAULT_LOCALE,
-                direction: 'ltr',
-                isLoading: false,
-                isTransitioning: false,
-                locales: LOCALES,
+    persist(
+        (set, get) => ({
+            // State
+            current: DEFAULT_LOCALE,
+            direction: 'ltr',
+            isLoading: false,
+            isTransitioning: false,
+            locales: LOCALES,
 
-                // Actions
-                setLocale: async (locale: LocaleCode) => {
-                    const currentLocale = get().current
-                    if (currentLocale === locale) return
+            // Synchronous setter for immediate updates
+            setLocale: (locale: LocaleCode) => {
+                const localeConfig = LOCALES.find(l => l.code === locale)
+                if (!localeConfig) return
 
-                    set({ isLoading: true, isTransitioning: true })
+                // Update store immediately
+                set({
+                    current: locale,
+                    direction: localeConfig.direction,
+                    isLoading: false,
+                    isTransitioning: false
+                })
 
-                    try {
-                        const localeConfig = LOCALES.find(l => l.code === locale)
-                        if (!localeConfig) {
-                            throw new Error(`Locale ${locale} not supported`)
+                // Set cookie
+                setCookie(LOCALE_COOKIE, locale, {
+                    maxAge: 365 * 24 * 60 * 60,
+                    path: '/',
+                    sameSite: 'lax'
+                })
+
+                // Update document attributes immediately
+                if (typeof document !== 'undefined') {
+                    const root = document.documentElement
+                    root.lang = locale
+                    root.dir = localeConfig.direction
+                    root.setAttribute('data-locale', locale)
+                    root.setAttribute('data-direction', localeConfig.direction)
+                }
+            },
+
+            // Async setter for transitions (only when needed)
+            setLocaleAsync: async (locale: LocaleCode) => {
+                const currentLocale = get().current
+                if (currentLocale === locale) return
+
+                const localeConfig = LOCALES.find(l => l.code === locale)
+                if (!localeConfig) throw new Error(`Locale ${locale} not supported`)
+
+                // Only show transition if direction is changing
+                const currentDirection = get().direction
+                const needsTransition = currentDirection !== localeConfig.direction
+
+                if (needsTransition) {
+                    set({ isTransitioning: true })
+                }
+
+                try {
+                    // Set cookie first
+                    setCookie(LOCALE_COOKIE, locale, {
+                        maxAge: 365 * 24 * 60 * 60,
+                        path: '/',
+                        sameSite: 'lax'
+                    })
+
+                    // Update document with transition class only if needed
+                    if (typeof document !== 'undefined') {
+                        const root = document.documentElement
+
+                        if (needsTransition) {
+                            root.classList.add('locale-transitioning')
                         }
 
-                        // Set cookie immediately
-                        setCookie(LOCALE_COOKIE, locale, {
-                            maxAge: 365 * 24 * 60 * 60,
-                            path: '/',
-                            sameSite: 'lax'
-                        })
+                        // Update attributes
+                        root.lang = locale
+                        root.dir = localeConfig.direction
+                        root.setAttribute('data-locale', locale)
+                        root.setAttribute('data-direction', localeConfig.direction)
 
-                        // Update document attributes immediately for CSS
-                        if (typeof document !== 'undefined') {
-                            const root = document.documentElement
-
-                            // Add transition class
-                            root.classList.add('locale-transitioning')
-
-                            // Update attributes
-                            root.lang = locale
-                            root.dir = localeConfig.direction
-                            root.setAttribute('data-locale', locale)
-                            root.setAttribute('data-direction', localeConfig.direction)
-
-                            // Remove transition class after animation
+                        // Remove transition class after a shorter duration
+                        if (needsTransition) {
                             setTimeout(() => {
                                 root.classList.remove('locale-transitioning')
                                 set({ isTransitioning: false })
-                            }, 300)
+                            }, 200) // Reduced from 300ms
                         }
-
-                        // Update state
-                        set({
-                            current: locale,
-                            direction: localeConfig.direction,
-                            isLoading: false
-                        })
-
-                    } catch (error) {
-                        console.error('Failed to set locale:', error)
-                        set({ isLoading: false, isTransitioning: false })
-                        throw error
                     }
-                },
 
-                getCurrentLocale: () => {
-                    const { current } = get()
-                    const locale = LOCALES.find(l => l.code === current)
-                    return locale || LOCALES[0]!
-                },
+                    // Update state
+                    set({
+                        current: locale,
+                        direction: localeConfig.direction,
+                        isLoading: false,
+                        isTransitioning: needsTransition ? get().isTransitioning : false
+                    })
 
-                isRTL: () => {
-                    return get().direction === 'rtl'
-                },
+                } catch (error) {
+                    console.error('Failed to set locale:', error)
+                    set({ isLoading: false, isTransitioning: false })
+                    throw error
+                }
+            },
 
-                startTransition: () => set({ isTransitioning: true }),
-                endTransition: () => set({ isTransitioning: false })
-            }),
-            {
-                name: 'locale-store',
-                partialize: (state) => ({
-                    current: state.current,
-                    direction: state.direction
-                })
-            }
-        )
+            getCurrentLocale: () => {
+                const { current } = get()
+                return LOCALES.find(l => l.code === current) || LOCALES[0]!
+            },
+
+            isRTL: () => get().direction === 'rtl',
+            startTransition: () => set({ isTransitioning: true }),
+            endTransition: () => set({ isTransitioning: false })
+        }),
+        {
+            name: 'locale-store',
+            partialize: (state) => ({
+                current: state.current,
+                direction: state.direction
+            })
+        }
     )
 )
 
-// Optimized hooks for specific data
+// Optimized selectors
 export const useCurrentLocale = () => useLocaleStore(state => state.current)
 export const useDirection = () => useLocaleStore(state => state.direction)
 export const useIsRTL = () => useLocaleStore(state => state.direction === 'rtl')
