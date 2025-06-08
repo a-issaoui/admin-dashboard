@@ -1,0 +1,83 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "actions": "Actions",
+    "settings": "Paramètres"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "overview": "Aperçu",
+    "analytics": "Analyses",
+    "reports": "Rapports",
+    "home": "Accueil",
+    "inbox": "Boîte de réception",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "drafts": "Brouillons",
+    "calendar": "Calendrier",
+    "projects": "Projets",
+    "teams": "Équipes",
+    "users": "Utilisateurs",
+    "management": "Gestion",
+    "events": "Événements",
+    "reminders": "Rappels",
+    "holidays": "Jours fériés",
+    "activeProjects": "Projets actifs",
+    "completed": "Terminés",
+    "archived": "Archivés",
+    "allUsers": "Tous les utilisateurs",
+    "admins": "Administrateurs",
+    "pending": "En attente",
+    "roles": "Rôles et permissions",
+    "audit": "Journaux d'audit"
+  },
+  "sidebar": {
+    "toggleSidebar": "Basculer la barre latérale",
+    "moreOptions": "Plus d'options",
+    "hasNotifications": "A des notifications",
+    "processing": "Traitement...",
+    "failed": "L'action a échoué"
+  },
+  "actions": {
+    "refresh": "Actualiser",
+    "export": "Exporter",
+    "import": "Importer",
+    "create": "Créer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "settings": "Paramètres",
+    "archive": "Archiver"
+  },
+  "confirmations": {
+    "delete": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+    "archive": "Êtes-vous sûr de vouloir archiver cet élément ?",
+    "clear": "Êtes-vous sûr de vouloir effacer tous les éléments ?"
+  },
+  "user": {
+    "profile": "Profil",
+    "account": "Compte",
+    "preferences": "Préférences",
+    "logout": "Se déconnecter"
+  },
+  "theme": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système",
+    "toggleTheme": "Basculer le thème"
+  },
+  "locale": {
+    "changeLanguage": "Changer de langue",
+    "english": "English",
+    "french": "Français",
+    "arabic": "العربية"
+  }
+}

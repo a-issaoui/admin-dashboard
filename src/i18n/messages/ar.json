@@ -1,0 +1,83 @@
+{
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "error": "خطأ",
+    "success": "نجح",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "search": "بحث",
+    "actions": "الإجراءات",
+    "settings": "الإعدادات"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "overview": "نظرة عامة",
+    "analytics": "التحليلات",
+    "reports": "التقارير",
+    "home": "الرئيسية",
+    "inbox": "البريد الوارد",
+    "notifications": "الإشعارات",
+    "messages": "الرسائل",
+    "drafts": "المسودات",
+    "calendar": "التقويم",
+    "projects": "المشاريع",
+    "teams": "الفرق",
+    "users": "المستخدمون",
+    "management": "الإدارة",
+    "events": "الأحداث",
+    "reminders": "التذكيرات",
+    "holidays": "العطل",
+    "activeProjects": "المشاريع النشطة",
+    "completed": "مكتمل",
+    "archived": "مؤرشف",
+    "allUsers": "جميع المستخدمين",
+    "admins": "المديرون",
+    "pending": "قيد الانتظار",
+    "roles": "الأدوار والصلاحيات",
+    "audit": "سجلات المراجعة"
+  },
+  "sidebar": {
+    "toggleSidebar": "تبديل الشريط الجانبي",
+    "moreOptions": "خيارات أكثر",
+    "hasNotifications": "يحتوي على إشعارات",
+    "processing": "جارٍ المعالجة...",
+    "failed": "فشل الإجراء"
+  },
+  "actions": {
+    "refresh": "تحديث",
+    "export": "تصدير",
+    "import": "استيراد",
+    "create": "إنشاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "settings": "الإعدادات",
+    "archive": "أرشفة"
+  },
+  "confirmations": {
+    "delete": "هل أنت متأكد من أنك تريد حذف هذا العنصر؟",
+    "archive": "هل أنت متأكد من أنك تريد أرشفة هذا العنصر؟",
+    "clear": "هل أنت متأكد من أنك تريد حذف جميع العناصر؟"
+  },
+  "user": {
+    "profile": "الملف الشخصي",
+    "account": "الحساب",
+    "preferences": "التفضيلات",
+    "logout": "تسجيل الخروج"
+  },
+  "theme": {
+    "light": "فاتح",
+    "dark": "داكن",
+    "system": "النظام",
+    "toggleTheme": "تبديل المظهر"
+  },
+  "locale": {
+    "changeLanguage": "تغيير اللغة",
+    "english": "English",
+    "french": "Français",
+    "arabic": "العربية"
+  }
+}

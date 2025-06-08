@@ -1,0 +1,83 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "actions": "Actions",
+    "settings": "Settings"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "reports": "Reports",
+    "home": "Home",
+    "inbox": "Inbox",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "drafts": "Drafts",
+    "calendar": "Calendar",
+    "projects": "Projects",
+    "teams": "Teams",
+    "users": "Users",
+    "management": "Management",
+    "events": "Events",
+    "reminders": "Reminders",
+    "holidays": "Holidays",
+    "activeProjects": "Active Projects",
+    "completed": "Completed",
+    "archived": "Archived",
+    "allUsers": "All Users",
+    "admins": "Administrators",
+    "pending": "Pending Users",
+    "roles": "Roles & Permissions",
+    "audit": "Audit Logs"
+  },
+  "sidebar": {
+    "toggleSidebar": "Toggle Sidebar",
+    "moreOptions": "More options",
+    "hasNotifications": "Has notifications",
+    "processing": "Processing...",
+    "failed": "Action failed"
+  },
+  "actions": {
+    "refresh": "Refresh",
+    "export": "Export",
+    "import": "Import",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "settings": "Settings",
+    "archive": "Archive"
+  },
+  "confirmations": {
+    "delete": "Are you sure you want to delete this item?",
+    "archive": "Are you sure you want to archive this item?",
+    "clear": "Are you sure you want to clear all items?"
+  },
+  "user": {
+    "profile": "Profile",
+    "account": "Account",
+    "preferences": "Preferences",
+    "logout": "Sign Out"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "toggleTheme": "Toggle theme"
+  },
+  "locale": {
+    "changeLanguage": "Change Language",
+    "english": "English",
+    "french": "Français",
+    "arabic": "العربية"
+  }
+}

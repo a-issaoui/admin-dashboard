@@ -1,6 +1,8 @@
-// src/app/page.tsx
-import { redirect } from 'next/navigation';
+// Home page - redirects to admin
+// TODO: Copy content from artifacts
 
-export default function Home() {
-    redirect('/admin'); // redirect immediately
+import { redirect } from 'next/navigation'
+
+export default function HomePage() {
+  redirect('/admin')
 }
