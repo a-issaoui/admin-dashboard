@@ -94,6 +94,35 @@
   [dir="ltr"] {
     text-align: left;
   }
+
+  /* Add these styles for accessibility skip links */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .sr-only-focusable:is(:focus, :active, :focus-within) {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 1rem;
+    margin: 1rem;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    z-index: 9999;
+  }
 }
 
 @layer components {

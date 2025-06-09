@@ -22,27 +22,13 @@ import {
     SidebarMenuSubItem,
     SidebarMenuSubButton
 } from '@/components/ui/sidebar'
-import { accessibilityCore } from '@/lib/accessibility/core'
+import { a11y } from '@/lib/accessibility'
 import { useIsRTL } from '@/lib/stores/locale-store'
 import { useSidebarStore } from '@/lib/stores/sidebar-store'
 import { cn } from '@/lib/utils'
 import type { SidebarMenuItem as SidebarMenuItemType, SidebarSubmenu, MenuAction, Badge } from '@/types/sidebar'
 import { SidebarActions } from './sidebar-actions'
 import { SidebarBadge } from './sidebar-badge'
-
-// Placeholder for missing accessibility helper
-const a11y = {
-    generateId: (prefix: string) => `${prefix}-${Math.random().toString(36).substring(2, 9)}`,
-    handleKeyboardNavigation: (event: React.KeyboardEvent, handlers: Record<string, () => void>) => {
-        const handler = handlers[event.key];
-        if (handler) {
-            handler();
-        }
-    },
-    announceToScreenReader: (message: string, priority: 'polite' | 'assertive') => {
-        accessibilityCore.updateAriaLiveRegion(message, priority);
-    }
-};
 
 interface SidebarItemProps {
     item: SidebarMenuItemType

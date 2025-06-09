@@ -83,34 +83,34 @@ export const sidebarData: SidebarData = [
     // Projects Group
     {
         id: 'projects',
-        titleKey: 'projects', // FIX: Just 'projects'
+        titleKey: 'projects',
         collapsible: true,
         defaultOpen: true,
         order: 2,
         menu: [
             {
                 id: 'calendar',
-                titleKey: 'calendar', // FIX: Just 'calendar'
+                titleKey: 'calendar',
                 icon: { name: 'CalendarIcon', size: 20, weight: 'regular' },
                 defaultExpanded: false,
                 submenu: [
                     {
                         id: 'events',
-                        titleKey: 'events', // FIX: Just 'events'
+                        titleKey: 'events',
                         url: '/calendar/events',
                         icon: { name: 'CalendarCheckIcon', size: 16, weight: 'bold' },
                         badge: { count: 5, color: 'blue' }
                     },
                     {
                         id: 'reminders',
-                        titleKey: 'reminders', // FIX: Just 'reminders'
+                        titleKey: 'reminders',
                         url: '/calendar/reminders',
                         icon: { name: 'BellIcon', size: 16, weight: 'light' },
                         badge: { color: 'green', variant: 'ghost' }
                     },
                     {
                         id: 'holidays',
-                        titleKey: 'holidays', // FIX: Just 'holidays'
+                        titleKey: 'holidays',
                         url: '/calendar/holidays',
                         icon: { name: 'StarIcon', size: 16, weight: 'fill' },
                         badge: { count: 2, color: 'yellow' }
@@ -119,26 +119,26 @@ export const sidebarData: SidebarData = [
             },
             {
                 id: 'project-list',
-                titleKey: 'projects', // FIX: Just 'projects'
+                titleKey: 'projects',
                 icon: { name: 'FolderIcon', size: 20, weight: 'duotone' },
                 submenu: [
                     {
                         id: 'active-projects',
-                        titleKey: 'activeProjects', // FIX: Just 'activeProjects'
+                        titleKey: 'activeProjects',
                         url: '/projects/active',
                         icon: { name: 'PlayIcon', size: 16, weight: 'fill' },
                         badge: { count: 7, color: 'green', variant: 'outline' }
                     },
                     {
                         id: 'completed-projects',
-                        titleKey: 'completed', // FIX: Just 'completed'
+                        titleKey: 'completed',
                         url: '/projects/completed',
                         icon: { name: 'CheckCircleIcon', size: 16, weight: 'bold' },
                         badge: { count: 23, color: 'blue' }
                     },
                     {
                         id: 'archived-projects',
-                        titleKey: 'archived', // FIX: Just 'archived'
+                        titleKey: 'archived',
                         url: '/projects/archived',
                         icon: { name: 'ArchiveIcon', size: 16, weight: 'light' },
                         badge: { count: 12, color: 'gray' }
@@ -151,7 +151,7 @@ export const sidebarData: SidebarData = [
             },
             {
                 id: 'teams',
-                titleKey: 'teams', // FIX: Just 'teams'
+                titleKey: 'teams',
                 url: '/teams',
                 icon: { name: 'UsersIcon', size: 20, weight: 'bold' },
                 badge: { count: 0, color: 'orange' },
@@ -169,33 +169,33 @@ export const sidebarData: SidebarData = [
     // Management Group
     {
         id: 'management',
-        titleKey: 'management', // FIX: Just 'management'
+        titleKey: 'management',
         collapsible: true,
         defaultOpen: false,
         order: 3,
         menu: [
             {
                 id: 'users',
-                titleKey: 'users', // FIX: Just 'users'
+                titleKey: 'users',
                 icon: { name: 'UserIcon', size: 20, weight: 'regular' },
                 submenu: [
                     {
                         id: 'all-users',
-                        titleKey: 'allUsers', // FIX: Just 'allUsers'
+                        titleKey: 'allUsers',
                         url: '/users',
                         icon: { name: 'UsersIcon', size: 16, weight: 'bold' },
                         badge: { count: 156, color: 'blue' }
                     },
                     {
                         id: 'admins',
-                        titleKey: 'admins', // FIX: Just 'admins'
+                        titleKey: 'admins',
                         url: '/users/admins',
                         icon: { name: 'ShieldIcon', size: 16, weight: 'fill' },
                         badge: { count: 5, color: 'red' }
                     },
                     {
                         id: 'pending-users',
-                        titleKey: 'pending', // FIX: Just 'pending'
+                        titleKey: 'pending',
                         url: '/users/pending',
                         icon: { name: 'ClockIcon', size: 16, weight: 'light' },
                         badge: { count: 12, color: 'yellow' }
@@ -208,7 +208,7 @@ export const sidebarData: SidebarData = [
             },
             {
                 id: 'roles',
-                titleKey: 'roles', // FIX: Just 'roles'
+                titleKey: 'roles',
                 url: '/roles',
                 icon: { name: 'KeyIcon', size: 20, weight: 'duotone' },
                 badge: { color: 'purple', variant: 'outline' },
@@ -218,7 +218,7 @@ export const sidebarData: SidebarData = [
             },
             {
                 id: 'audit',
-                titleKey: 'audit', // FIX: Just 'audit'
+                titleKey: 'audit',
                 url: '/audit',
                 icon: { name: 'FileTextIcon', size: 20, weight: 'thin' },
                 badge: { color: 'gray' },

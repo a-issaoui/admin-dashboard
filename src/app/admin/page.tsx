@@ -10,12 +10,7 @@ import { Icon } from '@/components/icons'
 import type { IconName } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-    useRenderPerformance,
-    useIntersectionObserver,
-    useExpensiveMemo,
-    useComponentPerformance
-} from '@/hooks/use-performance'
+import * as performance from '@/hooks/use-performance'
 
 // Proper TypeScript interfaces
 interface StatData {
@@ -41,7 +36,7 @@ const StatCard = React.memo(function StatCard({
                                                   trend = 'up'
                                               }: StatData) {
     const cardRef = React.useRef<HTMLDivElement>(null)
-    const { isIntersecting } = useIntersectionObserver(cardRef, {
+    const { isIntersecting } = performance.useIntersectionObserver(cardRef, {
         threshold: 0.1,
         rootMargin: '50px'
     })
@@ -81,15 +76,15 @@ const ActivityItem = React.memo(function ActivityItem({
 
 export default function AdminPage() {
     // Monitor render performance
-    useRenderPerformance('AdminPage')
+    performance.useRenderPerformance('AdminPage')
 
     // Monitor component performance
-    const { measureOperation } = useComponentPerformance('AdminPage')
+    const { measureOperation } = performance.useComponentPerformance('AdminPage')
 
     const t = useTranslations('nav')
 
     // Use expensive memo for heavy computations with performance monitoring
-    const statsData = useExpensiveMemo((): StatData[] => {
+    const statsData = performance.useExpensiveMemo((): StatData[] => {
         return measureOperation(() => [
             {
                 title: 'Total Users',
