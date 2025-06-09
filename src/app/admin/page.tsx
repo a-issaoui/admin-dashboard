@@ -1,5 +1,5 @@
 // ============================================================================
-// src/app/admin/page.tsx - FIXED TypeScript and ESLint errors
+// src/app/admin/page.tsx - FIXED with proper hook usage
 // ============================================================================
 
 'use client'
@@ -10,7 +10,12 @@ import { Icon } from '@/components/icons'
 import type { IconName } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useRenderPerformance, useIntersectionObserver } from '@/hooks/use-performance'
+import {
+    useRenderPerformance,
+    useIntersectionObserver,
+    useExpensiveMemo,
+    useComponentPerformance
+} from '@/hooks/use-performance'
 
 // Proper TypeScript interfaces
 interface StatData {
@@ -78,41 +83,46 @@ export default function AdminPage() {
     // Monitor render performance
     useRenderPerformance('AdminPage')
 
+    // Monitor component performance
+    const { measureOperation } = useComponentPerformance('AdminPage')
+
     const t = useTranslations('nav')
 
-    // Memoize stats data to prevent recalculation
-    const statsData = React.useMemo((): StatData[] => [
-        {
-            title: 'Total Users',
-            value: '1,234',
-            change: '+20.1% from last month',
-            icon: 'UsersIcon' as const,
-            trend: 'up' as const
-        },
-        {
-            title: 'Revenue',
-            value: '$45,231',
-            change: '+15.2% from last month',
-            icon: 'CurrencyDollarIcon' as const,
-            trend: 'up' as const
-        },
-        {
-            title: 'Orders',
-            value: '573',
-            change: '+12.5% from last month',
-            icon: 'ShoppingCartIcon' as const,
-            trend: 'up' as const
-        },
-        {
-            title: 'Active Now',
-            value: '89',
-            change: '+3 from last hour',
-            icon: 'ActivityIcon' as const,
-            trend: 'up' as const
-        }
-    ], [])
+    // Use expensive memo for heavy computations with performance monitoring
+    const statsData = useExpensiveMemo((): StatData[] => {
+        return measureOperation(() => [
+            {
+                title: 'Total Users',
+                value: '1,234',
+                change: '+20.1% from last month',
+                icon: 'UsersIcon' as const,
+                trend: 'up' as const
+            },
+            {
+                title: 'Revenue',
+                value: '$45,231',
+                change: '+15.2% from last month',
+                icon: 'CurrencyDollarIcon' as const,
+                trend: 'up' as const
+            },
+            {
+                title: 'Orders',
+                value: '573',
+                change: '+12.5% from last month',
+                icon: 'ShoppingCartIcon' as const,
+                trend: 'up' as const
+            },
+            {
+                title: 'Active Now',
+                value: '89',
+                change: '+3 from last hour',
+                icon: 'ActivityIcon' as const,
+                trend: 'up' as const
+            }
+        ], 'statsData')
+    }, [], 'AdminPage-statsData')
 
-    // Memoize activity data
+    // Regular memoization for simpler data
     const activityData = React.useMemo((): ActivityData[] => [
         {
             color: 'bg-blue-500',
@@ -152,7 +162,7 @@ export default function AdminPage() {
     // Memoize stats cards
     const statsCards = React.useMemo(() =>
             statsData.map((stat, index) => (
-                <StatCard key={index} {...stat} />
+                <StatCard key={`${stat.title}-${index}`} {...stat} />
             )),
         [statsData]
     )
@@ -160,7 +170,7 @@ export default function AdminPage() {
     // Memoize activity items
     const activityItems = React.useMemo(() =>
             activityData.map((activity, index) => (
-                <ActivityItem key={index} {...activity} />
+                <ActivityItem key={`${activity.title}-${index}`} {...activity} />
             )),
         [activityData]
     )
