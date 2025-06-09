@@ -1,9 +1,8 @@
-import { setCookie, getCookie } from 'cookies-next'
+import { setCookie } from 'cookies-next'
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { subscribeWithSelector } from 'zustand/middleware'
-import { errorManager } from '@/lib/error-management'
+import { persist , subscribeWithSelector } from 'zustand/middleware'
 import { notifications } from '@/components/ui/notification-system'
+import { errorManager } from '@/lib/error-management'
 import type { LocaleCode, LocaleConfig } from '@/types/locale'
 
 const LOCALES: LocaleConfig[] = [
@@ -30,6 +29,10 @@ const LOCALES: LocaleConfig[] = [
     }
 ]
 
+interface LocaleMessages {
+    [key: string]: unknown
+}
+
 interface LocaleState {
     current: LocaleCode
     direction: 'ltr' | 'rtl'
@@ -37,7 +40,7 @@ interface LocaleState {
     isTransitioning: boolean
     lastError: string | null
     locales: LocaleConfig[]
-    messageCache: Map<LocaleCode, Record<string, any>>
+    messageCache: Map<LocaleCode, LocaleMessages>
     pendingLocale: LocaleCode | null
 }
 
@@ -54,10 +57,28 @@ interface LocaleActions {
 
 type LocaleStore = LocaleState & LocaleActions
 
-const COOKIE_CONFIG = {
+interface CookieConfig {
+    maxAge: number
+    path: string
+    sameSite: 'lax' | 'strict' | 'none'
+    secure: boolean
+}
+
+interface StorageState {
+    current: LocaleCode
+    direction: 'ltr' | 'rtl'
+    messageCache: Array<[LocaleCode, LocaleMessages]>
+}
+
+interface MessageModule {
+    default?: LocaleMessages
+    [key: string]: unknown
+}
+
+const COOKIE_CONFIG: CookieConfig = {
     maxAge: 365 * 24 * 60 * 60,
     path: '/',
-    sameSite: 'lax' as const,
+    sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production'
 }
 
@@ -203,13 +224,13 @@ export const useLocaleStore = create<LocaleStore>()(
                     try {
                         set({ isLoading: true })
 
-                        const timeoutPromise = new Promise((_, reject) => {
+                        const timeoutPromise = new Promise<never>((_, reject) => {
                             setTimeout(() => reject(new Error('Locale loading timeout')), 5000)
                         })
 
                         const loadPromise = import(`@/i18n/messages/${locale}.json`)
 
-                        const messages = await Promise.race([loadPromise, timeoutPromise]) as any
+                        const messages = await Promise.race([loadPromise, timeoutPromise]) as MessageModule
 
                         const newCache = new Map(state.messageCache)
                         newCache.set(locale, messages.default || messages)
@@ -261,7 +282,7 @@ export const useLocaleStore = create<LocaleStore>()(
                 }),
                 onRehydrateStorage: () => (state) => {
                     if (state) {
-                        const cacheArray = state.messageCache as any
+                        const cacheArray = state.messageCache as unknown as Array<[LocaleCode, LocaleMessages]>
                         if (Array.isArray(cacheArray)) {
                             state.messageCache = new Map(cacheArray)
                         } else {
@@ -281,6 +302,7 @@ export const useIsRTL = () => useLocaleStore(state => state.direction === 'rtl')
 export const useIsTransitioning = () => useLocaleStore(state => state.isTransitioning)
 export const useLocaleError = () => useLocaleStore(state => state.lastError)
 export const useLocales = () => useLocaleStore(state => state.locales)
-export const useSetLocale = () => useLocaleStore(state => state.setLocale)
+export const useSetLocaleAsync = () => useLocaleStore(state => state.setLocale)
+export const useSetLocale = () => useLocaleStore(state => state.setLocaleSync)
 export const usePreloadLocale = () => useLocaleStore(state => state.preloadLocale)
 export const useClearLocaleError = () => useLocaleStore(state => state.clearError)

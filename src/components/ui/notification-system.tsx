@@ -1,4 +1,4 @@
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle as Warning } from 'lucide-react'
+import { CheckCircle, AlertCircle, Info, AlertTriangle as Warning } from 'lucide-react'
 import { toast } from 'sonner'
 
 export interface NotificationOptions {
@@ -12,8 +12,14 @@ export interface NotificationOptions {
     persistent?: boolean
 }
 
+interface NotificationData {
+    type: 'success' | 'error' | 'warning' | 'info'
+    message: string
+    options?: NotificationOptions
+}
+
 class NotificationSystem {
-    private notifications: Map<string, any> = new Map()
+    private notifications: Map<string, NotificationData> = new Map()
 
     success(message: string, options?: NotificationOptions) {
         const id = toast.success(message, {

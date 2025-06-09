@@ -5,6 +5,23 @@ interface ErrorReportingService {
     reportPerformanceIssue: (metric: string, value: number) => Promise<void>
 }
 
+interface SerializedError {
+    message: string
+    code: string
+    statusCode: number
+    context?: ErrorContext
+    stack?: string
+    timestamp: number
+}
+
+interface PerformanceIssue {
+    metric: string
+    value: number
+    timestamp: number
+    url: string
+    userAgent: string
+}
+
 class ErrorManager {
     private reportingService?: ErrorReportingService
     private errorQueue: TypedError[] = []
@@ -29,17 +46,19 @@ class ErrorManager {
         this.reportingService = {
             reportError: async (error: TypedError) => {
                 try {
+                    const serializedError: SerializedError = {
+                        message: error.message,
+                        code: error.code,
+                        statusCode: error.statusCode,
+                        context: error.context,
+                        stack: error.stack,
+                        timestamp: Date.now()
+                    }
+
                     await fetch('/api/errors', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: error.message,
-                            code: error.code,
-                            statusCode: error.statusCode,
-                            context: error.context,
-                            stack: error.stack,
-                            timestamp: Date.now()
-                        })
+                        body: JSON.stringify(serializedError)
                     })
                 } catch (reportingError) {
                     console.error('Failed to report error:', reportingError)
@@ -47,16 +66,18 @@ class ErrorManager {
             },
             reportPerformanceIssue: async (metric: string, value: number) => {
                 try {
+                    const performanceIssue: PerformanceIssue = {
+                        metric,
+                        value,
+                        timestamp: Date.now(),
+                        url: window.location.href,
+                        userAgent: navigator.userAgent
+                    }
+
                     await fetch('/api/performance', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            metric,
-                            value,
-                            timestamp: Date.now(),
-                            url: window.location.href,
-                            userAgent: navigator.userAgent
-                        })
+                        body: JSON.stringify(performanceIssue)
                     })
                 } catch (error) {
                     console.error('Failed to report performance issue:', error)
@@ -68,12 +89,11 @@ class ErrorManager {
     private setupDevelopmentReporting() {
         this.reportingService = {
             reportError: async (error: TypedError) => {
-                console.group('🚨 Error Report')
+                console.info('🚨 Error Report')
                 console.error('Message:', error.message)
                 console.error('Code:', error.code)
                 console.error('Context:', error.context)
                 console.error('Stack:', error.stack)
-                console.groupEnd()
             },
             reportPerformanceIssue: async (metric: string, value: number) => {
                 console.warn(`⚡ Performance Issue: ${metric} = ${value}ms`)
@@ -149,12 +169,12 @@ class ErrorManager {
         this.isReporting = false
     }
 
-    wrapAsync<T extends (...args: any[]) => Promise<any>>(
-        fn: T,
+    wrapAsync<TFunction extends (...args: unknown[]) => Promise<unknown>>(
+        fn: TFunction,
         component: string,
         action: string
-    ): T {
-        return (async (...args: Parameters<T>) => {
+    ): TFunction {
+        return (async (...args: Parameters<TFunction>) => {
             try {
                 return await fn(...args)
             } catch (error) {
@@ -170,15 +190,15 @@ class ErrorManager {
                 await this.handleError(typedError)
                 throw typedError
             }
-        }) as T
+        }) as TFunction
     }
 
-    wrapSync<T extends (...args: any[]) => any>(
-        fn: T,
+    wrapSync<TFunction extends (...args: unknown[]) => unknown>(
+        fn: TFunction,
         component: string,
         action: string
-    ): T {
-        return ((...args: Parameters<T>) => {
+    ): TFunction {
+        return ((...args: Parameters<TFunction>) => {
             try {
                 return fn(...args)
             } catch (error) {
@@ -194,7 +214,7 @@ class ErrorManager {
                 this.handleError(typedError)
                 throw typedError
             }
-        }) as T
+        }) as TFunction
     }
 }
 

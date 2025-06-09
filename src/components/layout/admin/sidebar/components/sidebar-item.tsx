@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import * as React from 'react'
 import { Icon } from '@/components/icons'
+import type { IconProps } from '@/components/icons'
 import {
     Collapsible,
     CollapsibleTrigger,
@@ -21,7 +22,12 @@ import {
 import { useSidebarStore, useIsRTL } from '@/lib/stores'
 import { a11y } from '@/lib/accessibility'
 import { cn } from '@/lib/utils'
-import type { SidebarMenuItem as SidebarMenuItemType, SidebarSubmenu } from '@/types/sidebar'
+import type {
+    SidebarMenuItem as SidebarMenuItemType,
+    SidebarSubmenu,
+    MenuAction,
+    Badge
+} from '@/types/sidebar'
 import { SidebarActions } from './sidebar-actions'
 import { SidebarBadge } from './sidebar-badge'
 
@@ -47,7 +53,7 @@ const ItemIcon = React.memo(function ItemIcon({
                                                   icon,
                                                   className
                                               }: {
-    icon?: any
+    icon?: IconProps
     className?: string
 }) {
     if (!icon) return null
@@ -60,7 +66,7 @@ const ItemBadge = React.memo(function ItemBadge({
                                                     hasActions,
                                                     className
                                                 }: {
-    badge?: any
+    badge?: Badge
     hasActions?: boolean
     className?: string
 }) {
@@ -81,12 +87,10 @@ const ItemBadge = React.memo(function ItemBadge({
 const ItemActions = React.memo(function ItemActions({
                                                         actions,
                                                         title,
-                                                        itemId,
                                                         className
                                                     }: {
-    actions?: any[]
+    actions?: MenuAction[]
     title: string
-    itemId: string
     className?: string
 }) {
     if (!actions?.length) return null
@@ -95,7 +99,7 @@ const ItemActions = React.memo(function ItemActions({
         <SidebarActions
             actions={actions}
             itemTitle={title}
-            className={className}
+            {...(className && { className })}
             aria-label={`Actions for ${title}`}
         />
     )
@@ -103,11 +107,9 @@ const ItemActions = React.memo(function ItemActions({
 
 // Memoized submenu component with performance optimizations
 const SubmenuItems = React.memo(function SubmenuItems({
-                                                          submenu,
-                                                          level = 1
+                                                          submenu
                                                       }: {
     submenu: SidebarSubmenu[]
-    level?: number
 }) {
     const t = useTranslations('nav')
     const pathname = usePathname()
@@ -144,19 +146,22 @@ const SubmenuItems = React.memo(function SubmenuItems({
                                 })}
                                 aria-current={isSubActive ? 'page' : undefined}
                             >
-                                <ItemIcon icon={subItem.icon} />
+                                {subItem.icon && (
+                                    <ItemIcon icon={subItem.icon} />
+                                )}
                                 <span className="flex-1 truncate">{subTitle}</span>
-                                <ItemBadge
-                                    badge={subItem.badge}
-                                    hasActions={Boolean(subItem.actions?.length)}
-                                />
+                                {subItem.badge && (
+                                    <ItemBadge
+                                        badge={subItem.badge}
+                                        hasActions={Boolean(subItem.actions?.length)}
+                                    />
+                                )}
                             </Link>
                         </SidebarMenuSubButton>
 
                         <ItemActions
                             actions={subItem.actions}
                             title={subTitle}
-                            itemId={subItem.id}
                         />
                     </SidebarMenuSubItem>
                 )
@@ -168,8 +173,7 @@ const SubmenuItems = React.memo(function SubmenuItems({
 // Main sidebar item component with comprehensive optimization
 export const SidebarItem = React.memo(function SidebarItem({
                                                                item,
-                                                               className,
-                                                               level = 0
+                                                               className
                                                            }: SidebarItemProps) {
     const t = useTranslations('nav')
     const pathname = usePathname()
@@ -249,12 +253,14 @@ export const SidebarItem = React.memo(function SidebarItem({
             "flex items-center gap-2 w-full",
             isRTL && "flex-row-reverse"
         )}>
-            <ItemIcon icon={item.icon} />
+            {item.icon && <ItemIcon icon={item.icon} />}
             <span className="flex-1 truncate">{computedState.title}</span>
-            <ItemBadge
-                badge={item.badge}
-                hasActions={computedState.hasActions}
-            />
+            {item.badge && (
+                <ItemBadge
+                    badge={item.badge}
+                    hasActions={computedState.hasActions}
+                />
+            )}
         </div>
     ), [item.icon, item.badge, computedState.title, computedState.hasActions, isRTL])
 
@@ -264,7 +270,7 @@ export const SidebarItem = React.memo(function SidebarItem({
             "flex items-center gap-2 w-full",
             isRTL && "flex-row-reverse"
         )}>
-            <ItemIcon icon={item.icon} />
+            {item.icon && <ItemIcon icon={item.icon} />}
             <span className="flex-1 truncate">{computedState.title}</span>
             <ChevronRight
                 className={cn(
@@ -310,15 +316,11 @@ export const SidebarItem = React.memo(function SidebarItem({
                     <ItemActions
                         actions={item.actions}
                         title={computedState.title}
-                        itemId={item.id}
                     />
 
                     <CollapsibleContent>
                         <div id={submenuId} role="group" aria-label={`${computedState.title} submenu`}>
-                            <SubmenuItems
-                                submenu={item.submenu!}
-                                level={level + 1}
-                            />
+                            <SubmenuItems submenu={item.submenu!} />
                         </div>
                     </CollapsibleContent>
                 </SidebarMenuItem>
@@ -370,7 +372,6 @@ export const SidebarItem = React.memo(function SidebarItem({
             <ItemActions
                 actions={item.actions}
                 title={computedState.title}
-                itemId={item.id}
             />
         </SidebarMenuItem>
     )

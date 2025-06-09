@@ -1,10 +1,10 @@
 'use client'
 
-import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/lib/utils'
-import { useAccessibility } from '@/hooks/use-accessibility'
+import * as React from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAccessibility } from '@/hooks/use-accessibility'
+import { cn } from '@/lib/utils'
 
 interface LoadingStateProps {
     isLoading: boolean

@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { errorManager } from './error-management'
 
 export interface PerformanceMetric {
@@ -8,7 +9,7 @@ export interface PerformanceMetric {
     userAgent: string
     sessionId: string
     userId?: string
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
 }
 
 export interface WebVitalsMetric extends PerformanceMetric {
@@ -30,6 +31,45 @@ export interface ComponentPerformanceMetric extends PerformanceMetric {
     renderType: 'initial' | 'update' | 'remount'
     propsCount?: number
     childrenCount?: number
+}
+
+interface PerformanceEntry {
+    name: string
+    startTime: number
+    duration: number
+}
+
+interface WebVitalsEntry {
+    name: string
+    value: number
+    delta: number
+    id: string
+    entries?: PerformanceEntry[]
+}
+
+interface AttributionSource {
+    node?: string
+    currentRect?: DOMRect
+    previousRect?: DOMRect
+}
+
+interface LayoutShiftEntry extends PerformanceEntry {
+    value: number
+    hadRecentInput: boolean
+    sources?: AttributionSource[]
+}
+
+interface LongTaskEntry extends PerformanceEntry {
+    attribution?: Array<{ name: string }>
+}
+
+interface PerformanceBatch {
+    metrics: PerformanceMetric[]
+    webVitals: WebVitalsMetric[]
+    userInteractions: UserInteractionMetric[]
+    componentMetrics: ComponentPerformanceMetric[]
+    timestamp: number
+    sessionId: string
 }
 
 class PerformanceAnalytics {
@@ -76,7 +116,7 @@ class PerformanceAnalytics {
         try {
             const { getCLS, getFID, getFCP, getLCP, getTTFB, onINP } = await import('web-vitals')
 
-            const vitalsHandler = (metric: any) => {
+            const vitalsHandler = (metric: WebVitalsEntry) => {
                 const webVitalsMetric: WebVitalsMetric = {
                     name: metric.name,
                     metricType: metric.name as WebVitalsMetric['metricType'],
@@ -89,7 +129,7 @@ class PerformanceAnalytics {
                     userAgent: navigator.userAgent,
                     sessionId: this.getSessionId(),
                     metadata: {
-                        entries: metric.entries?.map((entry: any) => ({
+                        entries: metric.entries?.map((entry: PerformanceEntry) => ({
                             name: entry.name,
                             startTime: entry.startTime,
                             duration: entry.duration
@@ -209,7 +249,7 @@ class PerformanceAnalytics {
             })
         })
 
-        let navigationStartTime = performance.now()
+        const navigationStartTime = performance.now()
 
         window.addEventListener('beforeunload', () => {
             const sessionDuration = performance.now() - navigationStartTime
@@ -247,8 +287,9 @@ class PerformanceAnalytics {
             try {
                 const longTaskObserver = new PerformanceObserver((list) => {
                     list.getEntries().forEach((entry) => {
+                        const longTask = entry as unknown as LongTaskEntry
                         this.recordMetric(`Long Task`, entry.duration, {
-                            attribution: (entry as any).attribution?.[0]?.name || 'unknown'
+                            attribution: longTask.attribution?.[0]?.name || 'unknown'
                         })
                     })
                 })
@@ -262,11 +303,11 @@ class PerformanceAnalytics {
             try {
                 const layoutShiftObserver = new PerformanceObserver((list) => {
                     list.getEntries().forEach((entry) => {
-                        const layoutShift = entry as any
+                        const layoutShift = entry as unknown as LayoutShiftEntry
                         if (!layoutShift.hadRecentInput && layoutShift.value > 0.001) {
                             this.recordMetric('Layout Shift', layoutShift.value * 1000, {
-                                sources: layoutShift.sources?.map((source: any) => ({
-                                    node: source.node?.tagName || 'unknown',
+                                sources: layoutShift.sources?.map((source: AttributionSource) => ({
+                                    node: source.node || 'unknown',
                                     currentRect: source.currentRect,
                                     previousRect: source.previousRect
                                 }))
@@ -283,7 +324,7 @@ class PerformanceAnalytics {
         }
     }
 
-    public recordMetric(name: string, value: number, metadata?: Record<string, any>) {
+    public recordMetric(name: string, value: number, metadata?: Record<string, unknown>) {
         const metric: PerformanceMetric = {
             name,
             value,
@@ -365,7 +406,7 @@ class PerformanceAnalytics {
             return
         }
 
-        const payload = {
+        const payload: PerformanceBatch = {
             metrics: [...this.metrics],
             webVitals: [...this.webVitalsMetrics],
             userInteractions: [...this.userInteractions],
@@ -406,12 +447,12 @@ class PerformanceAnalytics {
         return sessionId
     }
 
-    public measureFunction<T extends (...args: any[]) => any>(
-        fn: T,
+    public measureFunction<TFunction extends (...args: unknown[]) => unknown>(
+        fn: TFunction,
         name: string,
         component?: string
-    ): T {
-        return ((...args: Parameters<T>) => {
+    ): TFunction {
+        return ((...args: Parameters<TFunction>) => {
             const start = performance.now()
             const result = fn(...args)
             const end = performance.now()
@@ -423,15 +464,15 @@ class PerformanceAnalytics {
             }
 
             return result
-        }) as T
+        }) as TFunction
     }
 
-    public measureAsyncFunction<T extends (...args: any[]) => Promise<any>>(
-        fn: T,
+    public measureAsyncFunction<TFunction extends (...args: unknown[]) => Promise<unknown>>(
+        fn: TFunction,
         name: string,
         component?: string
-    ): T {
-        return (async (...args: Parameters<T>) => {
+    ): TFunction {
+        return (async (...args: Parameters<TFunction>) => {
             const start = performance.now()
             const result = await fn(...args)
             const end = performance.now()
@@ -443,7 +484,7 @@ class PerformanceAnalytics {
             }
 
             return result
-        }) as T
+        }) as TFunction
     }
 
     public destroy() {
@@ -476,7 +517,7 @@ export function useComponentPerformance(componentName: string) {
     return {
         recordMetric: (name: string, value: number) =>
             performanceAnalytics.recordComponentMetric(componentName, 'update', value, { name }),
-        measureFunction: <T extends (...args: any[]) => any>(fn: T, name: string) =>
+        measureFunction: <TFunction extends (...args: unknown[]) => unknown>(fn: TFunction, name: string) =>
             performanceAnalytics.measureFunction(fn, name, componentName)
     }
 }
