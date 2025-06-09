@@ -1,35 +1,35 @@
-import { TypedError, ErrorContext } from '@/types/common'
+// ============================================================================
+// src/lib/error-management.ts - Centralized and Robust Error Management
+// ============================================================================
 
-interface ErrorReportingService {
-    reportError: (error: TypedError) => Promise<void>
-    reportPerformanceIssue: (metric: string, value: number) => Promise<void>
-}
+import { TypedError, ErrorContext } from '@/types/common'
 
 interface SerializedError {
     message: string
     code: string
     statusCode: number
-    context?: ErrorContext
+    context: ErrorContext
     stack?: string
     timestamp: number
 }
 
-interface PerformanceIssue {
-    metric: string
-    value: number
-    timestamp: number
-    url: string
-    userAgent: string
+interface ErrorReportingService {
+    reportError: (error: TypedError) => Promise<void>
+    reportPerformanceIssue?: (metric: string, value: number) => Promise<void>
 }
 
 class ErrorManager {
-    private reportingService?: ErrorReportingService
+    private _reportingService?: ErrorReportingService
     private errorQueue: TypedError[] = []
     private isReporting = false
 
     constructor() {
         this.initializeErrorReporting()
         this.setupGlobalErrorHandlers()
+    }
+
+    public get reportingService(): ErrorReportingService | undefined {
+        return this._reportingService
     }
 
     private initializeErrorReporting() {
@@ -43,84 +43,67 @@ class ErrorManager {
     }
 
     private setupProductionReporting() {
-        this.reportingService = {
+        this._reportingService = {
             reportError: async (error: TypedError) => {
                 try {
                     const serializedError: SerializedError = {
                         message: error.message,
                         code: error.code,
                         statusCode: error.statusCode,
-                        context: error.context,
+                        context: error.context || this.createDefaultContext(),
                         stack: error.stack,
                         timestamp: Date.now()
                     }
-
-                    await fetch('/api/errors', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(serializedError)
-                    })
+                    // In a real app, you would send this to your logging endpoint
+                    // console.info("Reporting error to production service:", serializedError);
+                    // await fetch('/api/errors', {
+                    //     method: 'POST',
+                    //     headers: { 'Content-Type': 'application/json' },
+                    //     body: JSON.stringify(serializedError)
+                    // })
                 } catch (reportingError) {
                     console.error('Failed to report error:', reportingError)
                 }
             },
-            reportPerformanceIssue: async (metric: string, value: number) => {
-                try {
-                    const performanceIssue: PerformanceIssue = {
-                        metric,
-                        value,
-                        timestamp: Date.now(),
-                        url: window.location.href,
-                        userAgent: navigator.userAgent
-                    }
-
-                    await fetch('/api/performance', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(performanceIssue)
-                    })
-                } catch (error) {
-                    console.error('Failed to report performance issue:', error)
-                }
-            }
         }
     }
 
     private setupDevelopmentReporting() {
-        this.reportingService = {
+        this._reportingService = {
             reportError: async (error: TypedError) => {
-                console.info('🚨 Error Report')
+                console.group('🚨 Error Report (ErrorManager)')
                 console.error('Message:', error.message)
                 console.error('Code:', error.code)
                 console.error('Context:', error.context)
                 console.error('Stack:', error.stack)
+                console.groupEnd()
             },
             reportPerformanceIssue: async (metric: string, value: number) => {
-                console.warn(`⚡ Performance Issue: ${metric} = ${value}ms`)
+                console.warn(`⚡ Dev Performance Issue: ${metric} = ${value}ms`)
             }
         }
     }
 
     private setupGlobalErrorHandlers() {
-        if (typeof window !== 'undefined') {
-            window.addEventListener('error', (event) => {
-                this.handleError(new TypedError(
-                    event.message,
-                    'GLOBAL_ERROR',
-                    500,
-                    this.createErrorContext('window', 'global_error')
-                ))
-            })
+        if (typeof window === 'undefined') return;
 
-            window.addEventListener('unhandledrejection', (event) => {
-                this.handleError(new TypedError(
-                    event.reason?.message || 'Unhandled Promise Rejection',
-                    'UNHANDLED_REJECTION',
-                    500,
-                    this.createErrorContext('window', 'unhandled_rejection')
-                ))
-            })
-        }
+        window.addEventListener('error', (event) => {
+            this.handleError(new TypedError(
+                event.message,
+                'GLOBAL_ERROR',
+                500,
+                this.createErrorContext('window', 'global_error')
+            ))
+        })
+
+        window.addEventListener('unhandledrejection', (event) => {
+            this.handleError(new TypedError(
+                event.reason?.message || 'Unhandled Promise Rejection',
+                'UNHANDLED_REJECTION',
+                500,
+                this.createErrorContext('window', 'unhandled_rejection', { originalReason: event.reason })
+            ))
+        })
     }
 
     createErrorContext(component: string, action: string, additionalInfo?: Record<string, unknown>): ErrorContext {
@@ -131,24 +114,26 @@ class ErrorManager {
             sessionId: this.getSessionId(),
             userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
             url: typeof window !== 'undefined' ? window.location.href : 'server',
-            additionalInfo
+            additionalInfo: additionalInfo || {},
         }
+    }
+
+    private createDefaultContext(): ErrorContext {
+        return this.createErrorContext('unknown', 'unknown')
     }
 
     private getSessionId(): string {
         if (typeof window === 'undefined') return 'server-session'
-
-        let sessionId = sessionStorage.getItem('session-id')
+        let sessionId = sessionStorage.getItem('error-manager-session-id')
         if (!sessionId) {
             sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-            sessionStorage.setItem('session-id', sessionId)
+            sessionStorage.setItem('error-manager-session-id', sessionId)
         }
         return sessionId
     }
 
     async handleError(error: TypedError) {
         this.errorQueue.push(error)
-
         if (!this.isReporting) {
             await this.processErrorQueue()
         }
@@ -156,65 +141,14 @@ class ErrorManager {
 
     private async processErrorQueue() {
         if (this.isReporting || this.errorQueue.length === 0) return
-
         this.isReporting = true
-
         while (this.errorQueue.length > 0) {
-            const error = this.errorQueue.shift()
-            if (error && this.reportingService) {
-                await this.reportingService.reportError(error)
+            const errorToReport = this.errorQueue.shift()
+            if (errorToReport && this._reportingService) {
+                await this._reportingService.reportError(errorToReport)
             }
         }
-
         this.isReporting = false
-    }
-
-    wrapAsync<TFunction extends (...args: unknown[]) => Promise<unknown>>(
-        fn: TFunction,
-        component: string,
-        action: string
-    ): TFunction {
-        return (async (...args: Parameters<TFunction>) => {
-            try {
-                return await fn(...args)
-            } catch (error) {
-                const typedError = error instanceof TypedError
-                    ? error
-                    : new TypedError(
-                        error instanceof Error ? error.message : 'Unknown error',
-                        'ASYNC_ERROR',
-                        500,
-                        this.createErrorContext(component, action, { originalError: error })
-                    )
-
-                await this.handleError(typedError)
-                throw typedError
-            }
-        }) as TFunction
-    }
-
-    wrapSync<TFunction extends (...args: unknown[]) => unknown>(
-        fn: TFunction,
-        component: string,
-        action: string
-    ): TFunction {
-        return ((...args: Parameters<TFunction>) => {
-            try {
-                return fn(...args)
-            } catch (error) {
-                const typedError = error instanceof TypedError
-                    ? error
-                    : new TypedError(
-                        error instanceof Error ? error.message : 'Unknown error',
-                        'SYNC_ERROR',
-                        500,
-                        this.createErrorContext(component, action, { originalError: error })
-                    )
-
-                this.handleError(typedError)
-                throw typedError
-            }
-        }) as TFunction
     }
 }
 

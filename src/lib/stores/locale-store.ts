@@ -1,9 +1,14 @@
+// ============================================================================
+// src/lib/stores/locale-store.ts - FIXED unused variable
+// ============================================================================
+
 import { setCookie } from 'cookies-next'
 import { create } from 'zustand'
 import { persist , subscribeWithSelector } from 'zustand/middleware'
 import { notifications } from '@/components/ui/notification-system'
 import { errorManager } from '@/lib/error-management'
 import type { LocaleCode, LocaleConfig } from '@/types/locale'
+import { TypedError } from '@/types/common';
 
 const LOCALES: LocaleConfig[] = [
     {
@@ -29,10 +34,6 @@ const LOCALES: LocaleConfig[] = [
     }
 ]
 
-interface LocaleMessages {
-    [key: string]: unknown
-}
-
 interface LocaleState {
     current: LocaleCode
     direction: 'ltr' | 'rtl'
@@ -40,7 +41,7 @@ interface LocaleState {
     isTransitioning: boolean
     lastError: string | null
     locales: LocaleConfig[]
-    messageCache: Map<LocaleCode, LocaleMessages>
+    messageCache: Map<LocaleCode, Record<string, unknown>>
     pendingLocale: LocaleCode | null
 }
 
@@ -57,28 +58,10 @@ interface LocaleActions {
 
 type LocaleStore = LocaleState & LocaleActions
 
-interface CookieConfig {
-    maxAge: number
-    path: string
-    sameSite: 'lax' | 'strict' | 'none'
-    secure: boolean
-}
-
-interface StorageState {
-    current: LocaleCode
-    direction: 'ltr' | 'rtl'
-    messageCache: Array<[LocaleCode, LocaleMessages]>
-}
-
-interface MessageModule {
-    default?: LocaleMessages
-    [key: string]: unknown
-}
-
-const COOKIE_CONFIG: CookieConfig = {
+const COOKIE_CONFIG = {
     maxAge: 365 * 24 * 60 * 60,
     path: '/',
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     secure: process.env.NODE_ENV === 'production'
 }
 
@@ -128,8 +111,8 @@ export const useLocaleStore = create<LocaleStore>()(
 
                         try {
                             setCookie('locale', validatedLocale, COOKIE_CONFIG)
-                        } catch (cookieError) {
-                            console.warn('Failed to set locale cookie:', cookieError)
+                        } catch (cookieError: unknown) {
+                            console.warn('Failed to set locale cookie:', (cookieError as Error).message)
                         }
 
                         if (typeof document !== 'undefined') {
@@ -155,7 +138,7 @@ export const useLocaleStore = create<LocaleStore>()(
                             })
                         }
 
-                    } catch (error) {
+                    } catch (error: unknown) {
                         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
 
                         set({
@@ -165,7 +148,7 @@ export const useLocaleStore = create<LocaleStore>()(
                         })
 
                         await errorManager.handleError(
-                            new (await import('@/types/common')).TypedError(
+                            new TypedError(
                                 `Failed to set locale to ${validatedLocale}: ${errorMessage}`,
                                 'LOCALE_CHANGE_FAILED',
                                 500,
@@ -203,8 +186,8 @@ export const useLocaleStore = create<LocaleStore>()(
 
                     try {
                         setCookie('locale', validatedLocale, COOKIE_CONFIG)
-                    } catch (error) {
-                        console.warn('Failed to set locale cookie during sync:', error)
+                    } catch (error: unknown) {
+                        console.warn('Failed to set locale cookie during sync:', (error as Error).message)
                     }
 
                     set({
@@ -224,28 +207,28 @@ export const useLocaleStore = create<LocaleStore>()(
                     try {
                         set({ isLoading: true })
 
-                        const timeoutPromise = new Promise<never>((_, reject) => {
+                        const timeoutPromise = new Promise((_, reject) => {
                             setTimeout(() => reject(new Error('Locale loading timeout')), 5000)
                         })
 
                         const loadPromise = import(`@/i18n/messages/${locale}.json`)
 
-                        const messages = await Promise.race([loadPromise, timeoutPromise]) as MessageModule
+                        const messages = await Promise.race([loadPromise, timeoutPromise])
 
                         const newCache = new Map(state.messageCache)
-                        newCache.set(locale, messages.default || messages)
+                        newCache.set(locale, (messages as any).default || messages)
 
                         set({
                             messageCache: newCache,
                             isLoading: false
                         })
 
-                    } catch (error) {
+                    } catch (error: unknown) {
                         set({ isLoading: false })
 
                         const errorMessage = error instanceof Error ? error.message : 'Failed to load locale'
                         await errorManager.handleError(
-                            new (await import('@/types/common')).TypedError(
+                            new TypedError(
                                 `Failed to preload locale ${locale}: ${errorMessage}`,
                                 'LOCALE_PRELOAD_FAILED',
                                 500,
@@ -282,9 +265,9 @@ export const useLocaleStore = create<LocaleStore>()(
                 }),
                 onRehydrateStorage: () => (state) => {
                     if (state) {
-                        const cacheArray = state.messageCache as unknown as Array<[LocaleCode, LocaleMessages]>
+                        const cacheArray = state.messageCache as unknown
                         if (Array.isArray(cacheArray)) {
-                            state.messageCache = new Map(cacheArray)
+                            state.messageCache = new Map(cacheArray as [LocaleCode, Record<string, unknown>][])
                         } else {
                             state.messageCache = new Map()
                         }
@@ -296,6 +279,7 @@ export const useLocaleStore = create<LocaleStore>()(
     )
 )
 
+// Exported hooks for component consumption
 export const useCurrentLocale = () => useLocaleStore(state => state.current)
 export const useDirection = () => useLocaleStore(state => state.direction)
 export const useIsRTL = () => useLocaleStore(state => state.direction === 'rtl')

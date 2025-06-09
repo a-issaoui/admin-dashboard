@@ -1,5 +1,10 @@
+// ============================================================================
+// src/lib/performance-analytics.ts - FIXED for web-vitals v5 API
+// ============================================================================
 import * as React from 'react'
+import { onCLS, onFCP, onLCP, onTTFB, onINP, Metric } from 'web-vitals'
 import { errorManager } from './error-management'
+import { TypedError } from '@/types/common';
 
 export interface PerformanceMetric {
     name: string
@@ -8,12 +13,11 @@ export interface PerformanceMetric {
     url: string
     userAgent: string
     sessionId: string
-    userId?: string
-    metadata?: Record<string, unknown>
+    metadata: Record<string, unknown>
 }
 
 export interface WebVitalsMetric extends PerformanceMetric {
-    metricType: 'CLS' | 'FID' | 'FCP' | 'LCP' | 'TTFB' | 'INP'
+    metricType: 'CLS' | 'FCP' | 'LCP' | 'TTFB' | 'INP'
     rating: 'good' | 'needs-improvement' | 'poor'
     delta: number
     id: string
@@ -31,45 +35,6 @@ export interface ComponentPerformanceMetric extends PerformanceMetric {
     renderType: 'initial' | 'update' | 'remount'
     propsCount?: number
     childrenCount?: number
-}
-
-interface PerformanceEntry {
-    name: string
-    startTime: number
-    duration: number
-}
-
-interface WebVitalsEntry {
-    name: string
-    value: number
-    delta: number
-    id: string
-    entries?: PerformanceEntry[]
-}
-
-interface AttributionSource {
-    node?: string
-    currentRect?: DOMRect
-    previousRect?: DOMRect
-}
-
-interface LayoutShiftEntry extends PerformanceEntry {
-    value: number
-    hadRecentInput: boolean
-    sources?: AttributionSource[]
-}
-
-interface LongTaskEntry extends PerformanceEntry {
-    attribution?: Array<{ name: string }>
-}
-
-interface PerformanceBatch {
-    metrics: PerformanceMetric[]
-    webVitals: WebVitalsMetric[]
-    userInteractions: UserInteractionMetric[]
-    componentMetrics: ComponentPerformanceMetric[]
-    timestamp: number
-    sessionId: string
 }
 
 class PerformanceAnalytics {
@@ -100,13 +65,13 @@ class PerformanceAnalytics {
             this.startBatchFlushTimer()
 
             this.isInitialized = true
-        } catch (error) {
+        } catch (error: unknown) {
             await errorManager.handleError(
-                new (await import('@/types/common')).TypedError(
+                new TypedError(
                     'Failed to initialize performance monitoring',
                     'PERF_INIT_ERROR',
                     500,
-                    errorManager.createErrorContext('PerformanceAnalytics', 'initialize', { error })
+                    errorManager.createErrorContext('PerformanceAnalytics', 'initialize', { error: (error as Error).message })
                 )
             )
         }
@@ -114,16 +79,14 @@ class PerformanceAnalytics {
 
     private async setupWebVitalsMonitoring() {
         try {
-            const { getCLS, getFID, getFCP, getLCP, getTTFB, onINP } = await import('web-vitals')
-
-            const vitalsHandler = (metric: WebVitalsEntry) => {
+            const vitalsHandler = (metric: Metric) => {
                 const webVitalsMetric: WebVitalsMetric = {
                     name: metric.name,
                     metricType: metric.name as WebVitalsMetric['metricType'],
                     value: metric.value,
                     delta: metric.delta,
                     id: metric.id,
-                    rating: this.getVitalsRating(metric.name, metric.value),
+                    rating: metric.rating,
                     timestamp: Date.now(),
                     url: window.location.href,
                     userAgent: navigator.userAgent,
@@ -133,7 +96,7 @@ class PerformanceAnalytics {
                             name: entry.name,
                             startTime: entry.startTime,
                             duration: entry.duration
-                        }))
+                        })) || []
                     }
                 }
 
@@ -141,22 +104,20 @@ class PerformanceAnalytics {
                 this.checkBatchFlush()
             }
 
-            getCLS(vitalsHandler)
-            getFID(vitalsHandler)
-            getFCP(vitalsHandler)
-            getLCP(vitalsHandler)
-            getTTFB(vitalsHandler)
+            onCLS(vitalsHandler)
+            onFCP(vitalsHandler)
+            onLCP(vitalsHandler)
+            onTTFB(vitalsHandler)
             onINP(vitalsHandler)
 
-        } catch (error) {
-            console.warn('Web Vitals monitoring unavailable:', error)
+        } catch (error: unknown) {
+            console.warn('Web Vitals monitoring unavailable:', (error as Error).message)
         }
     }
 
     private getVitalsRating(metricName: string, value: number): 'good' | 'needs-improvement' | 'poor' {
         const thresholds: Record<string, { good: number; poor: number }> = {
             CLS: { good: 0.1, poor: 0.25 },
-            FID: { good: 100, poor: 300 },
             FCP: { good: 1800, poor: 3000 },
             LCP: { good: 2500, poor: 4000 },
             TTFB: { good: 800, poor: 1800 },
@@ -211,8 +172,8 @@ class PerformanceAnalytics {
         try {
             resourceObserver.observe({ entryTypes: ['resource'] })
             this.observers.set('resource', resourceObserver)
-        } catch (error) {
-            console.warn('Resource timing monitoring unavailable:', error)
+        } catch (error: unknown) {
+            console.warn('Resource timing monitoring unavailable:', (error as Error).message)
         }
     }
 
@@ -244,7 +205,8 @@ class PerformanceAnalytics {
                 this.recordUserInteraction({
                     interactionType: 'click',
                     elementSelector: this.getElementSelector(target),
-                    duration: endTime - startTime
+                    duration: endTime - startTime,
+                    metadata: {}
                 })
             })
         })
@@ -269,7 +231,8 @@ class PerformanceAnalytics {
                 const scrollDuration = performance.now() - scrollStart
                 this.recordUserInteraction({
                     interactionType: 'scroll',
-                    duration: scrollDuration
+                    duration: scrollDuration,
+                    metadata: {}
                 })
                 scrollStart = 0
             }, 150)
@@ -286,31 +249,30 @@ class PerformanceAnalytics {
         if ('PerformanceObserver' in window) {
             try {
                 const longTaskObserver = new PerformanceObserver((list) => {
-                    list.getEntries().forEach((entry) => {
-                        const longTask = entry as unknown as LongTaskEntry
+                    list.getEntries().forEach((entry: PerformanceEntry) => {
                         this.recordMetric(`Long Task`, entry.duration, {
-                            attribution: longTask.attribution?.[0]?.name || 'unknown'
+                            attribution: (entry as any).attribution?.[0]?.name || 'unknown'
                         })
                     })
                 })
 
                 longTaskObserver.observe({ entryTypes: ['longtask'] })
                 this.observers.set('longtask', longTaskObserver)
-            } catch (error) {
-                console.warn('Long task monitoring unavailable:', error)
+            } catch (error: unknown) {
+                console.warn('Long task monitoring unavailable:', (error as Error).message)
             }
 
             try {
                 const layoutShiftObserver = new PerformanceObserver((list) => {
                     list.getEntries().forEach((entry) => {
-                        const layoutShift = entry as unknown as LayoutShiftEntry
+                        const layoutShift = entry as any
                         if (!layoutShift.hadRecentInput && layoutShift.value > 0.001) {
                             this.recordMetric('Layout Shift', layoutShift.value * 1000, {
-                                sources: layoutShift.sources?.map((source: AttributionSource) => ({
-                                    node: source.node || 'unknown',
+                                sources: layoutShift.sources?.map((source: any) => ({
+                                    node: source.node?.tagName || 'unknown',
                                     currentRect: source.currentRect,
                                     previousRect: source.previousRect
-                                }))
+                                })) || []
                             })
                         }
                     })
@@ -318,8 +280,8 @@ class PerformanceAnalytics {
 
                 layoutShiftObserver.observe({ entryTypes: ['layout-shift'] })
                 this.observers.set('layout-shift', layoutShiftObserver)
-            } catch (error) {
-                console.warn('Layout shift monitoring unavailable:', error)
+            } catch (error: unknown) {
+                console.warn('Layout shift monitoring unavailable:', (error as Error).message)
             }
         }
     }
@@ -332,7 +294,7 @@ class PerformanceAnalytics {
             url: window.location.href,
             userAgent: navigator.userAgent,
             sessionId: this.getSessionId(),
-            metadata
+            metadata: metadata || {}
         }
 
         this.metrics.push(metric)
@@ -348,7 +310,7 @@ class PerformanceAnalytics {
         componentName: string,
         renderType: ComponentPerformanceMetric['renderType'],
         value: number,
-        metadata?: Partial<ComponentPerformanceMetric>
+        metadata: Partial<Omit<ComponentPerformanceMetric, 'name' | 'componentName' | 'renderType' | 'value' | 'timestamp' | 'url' | 'userAgent' | 'sessionId' | 'metadata'>> & { metadata?: Record<string, unknown> } = {}
     ) {
         const metric: ComponentPerformanceMetric = {
             name: `Component: ${componentName}`,
@@ -359,6 +321,7 @@ class PerformanceAnalytics {
             url: window.location.href,
             userAgent: navigator.userAgent,
             sessionId: this.getSessionId(),
+            metadata: metadata.metadata || {},
             ...metadata
         }
 
@@ -366,7 +329,7 @@ class PerformanceAnalytics {
         this.checkBatchFlush()
     }
 
-    private recordUserInteraction(interaction: Omit<UserInteractionMetric, keyof PerformanceMetric>) {
+    private recordUserInteraction(interaction: Omit<UserInteractionMetric, 'name' | 'value' | 'timestamp' | 'url' | 'userAgent' | 'sessionId' >) {
         const metric: UserInteractionMetric = {
             ...interaction,
             name: `User Interaction: ${interaction.interactionType}`,
@@ -406,7 +369,7 @@ class PerformanceAnalytics {
             return
         }
 
-        const payload: PerformanceBatch = {
+        const payload = {
             metrics: [...this.metrics],
             webVitals: [...this.webVitalsMetrics],
             userInteractions: [...this.userInteractions],
@@ -429,12 +392,12 @@ class PerformanceAnalytics {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                     keepalive: true
-                }).catch(error => {
-                    console.warn('Failed to send performance metrics:', error)
+                }).catch((error: unknown) => {
+                    console.warn('Failed to send performance metrics:', (error as Error).message)
                 })
             }
-        } catch (error) {
-            console.warn('Failed to flush performance metrics:', error)
+        } catch (error: unknown) {
+            console.warn('Failed to flush performance metrics:', (error as Error).message)
         }
     }
 
@@ -447,12 +410,12 @@ class PerformanceAnalytics {
         return sessionId
     }
 
-    public measureFunction<TFunction extends (...args: unknown[]) => unknown>(
-        fn: TFunction,
+    public measureFunction<T extends (...args: unknown[]) => unknown>(
+        fn: T,
         name: string,
         component?: string
-    ): TFunction {
-        return ((...args: Parameters<TFunction>) => {
+    ): T {
+        return ((...args: Parameters<T>) => {
             const start = performance.now()
             const result = fn(...args)
             const end = performance.now()
@@ -464,15 +427,15 @@ class PerformanceAnalytics {
             }
 
             return result
-        }) as TFunction
+        }) as T
     }
 
-    public measureAsyncFunction<TFunction extends (...args: unknown[]) => Promise<unknown>>(
-        fn: TFunction,
+    public measureAsyncFunction<T extends (...args: unknown[]) => Promise<unknown>>(
+        fn: T,
         name: string,
         component?: string
-    ): TFunction {
-        return (async (...args: Parameters<TFunction>) => {
+    ): T {
+        return (async (...args: Parameters<T>) => {
             const start = performance.now()
             const result = await fn(...args)
             const end = performance.now()
@@ -484,7 +447,7 @@ class PerformanceAnalytics {
             }
 
             return result
-        }) as TFunction
+        }) as T
     }
 
     public destroy() {
@@ -516,8 +479,8 @@ export function useComponentPerformance(componentName: string) {
 
     return {
         recordMetric: (name: string, value: number) =>
-            performanceAnalytics.recordComponentMetric(componentName, 'update', value, { name }),
-        measureFunction: <TFunction extends (...args: unknown[]) => unknown>(fn: TFunction, name: string) =>
+            performanceAnalytics.recordComponentMetric(componentName, 'update', value, { metadata: { name } }),
+        measureFunction: <T extends (...args: unknown[]) => unknown>(fn: T, name: string) =>
             performanceAnalytics.measureFunction(fn, name, componentName)
     }
 }

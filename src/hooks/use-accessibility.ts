@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { accessibilityCore, AccessibilityPreferences, FocusManagementOptions } from '@/lib/accessibility/core'
+import { accessibilityCore, AccessibilityPreferences, FocusManagementOptions } from '@/lib/accessibility'
 
 export function useAccessibility() {
     const [preferences, setPreferences] = React.useState<AccessibilityPreferences>(

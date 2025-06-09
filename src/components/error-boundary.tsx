@@ -1,9 +1,13 @@
+// ============================================================================
+// src/components/error-boundary.tsx - FIXED Error Boundary
+// ============================================================================
+
 'use client'
 
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AppError } from '@/lib/error-handler'
+import { AppError } from '@/lib/accessibility' // Corrected import path
 
 interface ErrorBoundaryState {
     hasError: boolean
@@ -56,6 +60,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
 function DefaultErrorFallback({ error, errorInfo }: ErrorBoundaryState) {
     const isAppError = error instanceof AppError
+    const errorMessage = error?.message || 'An unexpected error occurred'
 
     return (
         <div className="flex min-h-screen items-center justify-center p-4">
@@ -65,20 +70,17 @@ function DefaultErrorFallback({ error, errorInfo }: ErrorBoundaryState) {
                         {isAppError ? 'Application Error' : 'Unexpected Error'}
                     </CardTitle>
                     <CardDescription>
-                        {isAppError
-                            ? error.message
-                            : error?.message || 'An unexpected error occurred. Please try again.'
-                        }
+                        {isAppError ? errorMessage : 'An unexpected error occurred. Please try again.'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {process.env.NODE_ENV === 'development' && (
+                    {process.env.NODE_ENV === 'development' && error && (
                         <details className="text-sm">
                             <summary className="cursor-pointer font-medium">
                                 Debug Information
                             </summary>
                             <pre className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground overflow-auto max-h-48">
-                                {error?.stack}
+                                {error.stack}
                                 {errorInfo?.componentStack}
                             </pre>
                         </details>

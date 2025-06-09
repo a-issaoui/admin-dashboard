@@ -1,3 +1,7 @@
+// ============================================================================
+// src/lib/accessibility/core.ts - FIXED for exactOptionalPropertyTypes
+// ============================================================================
+
 export interface AccessibilityPreferences {
     reduceMotion: boolean
     highContrast: boolean
@@ -5,7 +9,7 @@ export interface AccessibilityPreferences {
     screenReader: boolean
     keyboardNavigation: boolean
     autoplayMedia: boolean
-    colorBlindnessType?: 'protanopia' | 'deuteranopia' | 'tritanopia' | 'none'
+    colorBlindnessType: 'protanopia' | 'deuteranopia' | 'tritanopia' | 'none'
 }
 
 export interface FocusManagementOptions {
@@ -33,7 +37,9 @@ class AccessibilityCore {
             ['tritanopia', 'sepia(1) saturate(0.7) hue-rotate(200deg)']
         ])
 
-        this.initializeAccessibilityFeatures()
+        if (typeof window !== 'undefined') {
+            this.initializeAccessibilityFeatures()
+        }
     }
 
     private detectSystemPreferences(): AccessibilityPreferences {
@@ -72,7 +78,13 @@ class AccessibilityCore {
 
     private getStoredColorBlindnessType(): AccessibilityPreferences['colorBlindnessType'] {
         const stored = localStorage.getItem('accessibility-color-blindness')
-        return (stored as AccessibilityPreferences['colorBlindnessType']) || 'none'
+        const validTypes: AccessibilityPreferences['colorBlindnessType'][] = ['protanopia', 'deuteranopia', 'tritanopia', 'none']
+
+        if (stored && validTypes.includes(stored as AccessibilityPreferences['colorBlindnessType'])) {
+            return stored as AccessibilityPreferences['colorBlindnessType']
+        }
+
+        return 'none'
     }
 
     private initializeAccessibilityFeatures() {
@@ -187,7 +199,7 @@ class AccessibilityCore {
     }
 
     private applyColorBlindnessFilter() {
-        const filter = this.colorFilters.get(this.preferences.colorBlindnessType || 'none')
+        const filter = this.colorFilters.get(this.preferences.colorBlindnessType)
         if (filter && this.preferences.colorBlindnessType !== 'none') {
             document.documentElement.style.filter = filter
         } else {
