@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/shared/page-language-selector.tsx - FIXED with proper hooks
+// src/components/shared/page-language-selector.tsx - STANDARD REACT PATTERNS
 // ============================================================================
 
 'use client'
@@ -15,7 +15,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useExpensiveMemo } from '@/hooks/use-performance'
 import {
     useCurrentLocale,
     useDirection,
@@ -32,7 +31,7 @@ export function PageLanguageSelector() {
     const t = useTranslations('locale')
     const router = useRouter()
 
-    // FIXED: Use proper exported hooks
+    // Store selectors
     const current = useCurrentLocale()
     const direction = useDirection()
     const isRTL = useIsRTL()
@@ -41,25 +40,23 @@ export function PageLanguageSelector() {
     const setLocaleAsync = useSetLocaleAsync()
     const setLocale = useSetLocale()
 
-    // OPTIMIZED: Use performance hook for expensive computations
-    const currentLocale = useExpensiveMemo(() =>
+    // Memoize current locale lookup
+    const currentLocale = React.useMemo(() =>
             locales.find(l => l.code === current),
-        [locales, current],
-        'currentLocale-lookup'
+        [locales, current]
     )
 
-    // OPTIMIZED: Memoize locale options with performance monitoring
-    const localeOptions = useExpensiveMemo(() =>
+    // Memoize locale options with computed properties
+    const localeOptions = React.useMemo(() =>
             locales.map(locale => ({
                 ...locale,
                 isSelected: current === locale.code,
                 willCauseRefresh: direction !== locale.direction
             })),
-        [locales, current, direction],
-        'localeOptions-computation'
+        [locales, current, direction]
     )
 
-    // FIXED: Smart locale change handler with proper error handling
+    // Locale change handler with error handling
     const handleLocaleChange = React.useCallback(async (newLocale: LocaleCode) => {
         if (current === newLocale || isTransitioning) return
 
@@ -67,17 +64,15 @@ export function PageLanguageSelector() {
             const newDirection = locales.find(l => l.code === newLocale)?.direction || 'ltr'
             const needsRefresh = direction !== newDirection
 
-            // Use async method only if direction changes
+            // Use async method for direction changes
             if (needsRefresh) {
                 await setLocaleAsync(newLocale)
-                // Wait for transition to complete before refreshing
                 setTimeout(() => {
                     router.refresh()
                 }, 250)
             } else {
-                // For same-direction changes, just update the locale synchronously
+                // Synchronous update for same-direction changes
                 setLocale(newLocale)
-                // Small delay to ensure state update propagates
                 setTimeout(() => {
                     router.refresh()
                 }, 100)
@@ -94,8 +89,8 @@ export function PageLanguageSelector() {
         }
     }, [current, isTransitioning, setLocaleAsync, setLocale, direction, locales, router])
 
-    // OPTIMIZED: Prepare button content with stable references and performance monitoring
-    const buttonContent = useExpensiveMemo(() => (
+    // Memoize button content
+    const buttonContent = React.useMemo(() => (
         <div className={cn(
             "flex items-center gap-2",
             isRTL && "flex-row-reverse"
@@ -105,9 +100,9 @@ export function PageLanguageSelector() {
                 {currentLocale?.flag} {currentLocale?.nativeName}
             </span>
         </div>
-    ), [currentLocale, isRTL], 'buttonContent-render')
+    ), [currentLocale, isRTL])
 
-    // OPTIMIZED: Memoize loading content
+    // Memoize loading content
     const loadingContent = React.useMemo(() => (
         <div className="flex items-center gap-2">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

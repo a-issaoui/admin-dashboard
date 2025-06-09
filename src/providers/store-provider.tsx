@@ -1,5 +1,5 @@
 // ============================================================================
-// src/providers/store-provider.tsx - OPTIMIZED for performance
+// src/providers/store-provider.tsx - PRODUCTION-OPTIMIZED IMPLEMENTATION
 // ============================================================================
 
 'use client'
@@ -13,62 +13,49 @@ interface StoreProviderProps {
   children: React.ReactNode
 }
 
-// Move initialization logic outside component to prevent re-creation
-const initializeTheme = () => {
-  if (typeof window === 'undefined') return 'system'
-
-  try {
-    const saved = localStorage.getItem('theme-store')
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      return parsed.state?.theme || 'system'
-    }
-  } catch {
-    // Fallback silently
-  }
-  return 'system'
-}
-
-const updateDocumentAttributes = (locale: LocaleCode, direction: 'ltr' | 'rtl') => {
-  if (typeof document === 'undefined') return
-
-  const root = document.documentElement
-
-  // Batch DOM updates in a single frame
-  requestAnimationFrame(() => {
-    root.lang = locale
-    root.dir = direction
-    root.setAttribute('data-locale', locale)
-    root.setAttribute('data-direction', direction)
-  })
-}
-
 export function StoreProvider({ children }: StoreProviderProps) {
   const locale = useLocale() as LocaleCode
   const [isInitialized, setIsInitialized] = React.useState(false)
 
-  // Get store actions as stable references
+  // Direct store access for initialization
   const setLocale = useLocaleStore.getState().setLocale
   const setTheme = useThemeStore.getState().setTheme
 
-  // Initialize stores synchronously on mount
+  // Single initialization effect
   React.useLayoutEffect(() => {
     if (isInitialized) return
 
     // Initialize locale immediately
     setLocale(locale)
 
-    // Initialize theme immediately
-    const theme = initializeTheme()
-    setTheme(theme)
+    // Initialize theme from storage or system preference
+    const initializeTheme = () => {
+      try {
+        const saved = localStorage.getItem('theme-store')
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          return parsed.state?.theme || 'system'
+        }
+      } catch {
+        // Silently fallback to system
+      }
+      return 'system'
+    }
 
-    // Update document attributes
+    setTheme(initializeTheme())
+
+    // Update document attributes for RTL support
     const direction = locale === 'ar' ? 'rtl' : 'ltr'
-    updateDocumentAttributes(locale, direction)
+    const root = document.documentElement
+
+    root.lang = locale
+    root.dir = direction
+    root.setAttribute('data-locale', locale)
+    root.setAttribute('data-direction', direction)
 
     setIsInitialized(true)
   }, [locale, setLocale, setTheme, isInitialized])
 
-  // Don't show loading state - render immediately
+  // Render children immediately - no loading states
   return <>{children}</>
 }

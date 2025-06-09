@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/app-sidebar.tsx - PERFORMANCE OPTIMIZED
+// src/components/layout/admin/sidebar/app-sidebar.tsx - STANDARD REACT PATTERNS
 // ============================================================================
 
 'use client'
@@ -9,7 +9,7 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarRail } fr
 import { orgData } from '@/data/org-data'
 import { sidebarData } from '@/data/sidebar-data'
 import { userData } from '@/data/user-data'
-import { useExpensiveMemo, useRenderPerformance } from '@/hooks/use-performance'
+import { useRenderPerformance } from '@/hooks/use-performance'
 import { useSidebarStore, useDirection, useIsRTL } from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import { SidebarGroupComponent } from './components/sidebar-group'
@@ -28,40 +28,38 @@ export function AppSidebar({
                                collapsible = 'icon',
                                className
                            }: AppSidebarProps) {
-    // OPTIMIZED: Monitor render performance
+    // Monitor render performance in development
     useRenderPerformance('AppSidebar')
 
     const { setData, data } = useSidebarStore()
-
-    // Use optimized selectors
     const direction = useDirection()
     const isRTL = useIsRTL()
 
-    // OPTIMIZED: Memoize side calculation with performance monitoring
-    const sidebarSide = useExpensiveMemo(() => {
+    // Memoize side calculation
+    const sidebarSide = React.useMemo(() => {
         return isRTL ? 'right' : 'left'
-    }, [isRTL], 'sidebarSide-calculation')
+    }, [isRTL])
 
-    // OPTIMIZED: Memoize sorted groups with performance monitoring
-    const sortedGroups = useExpensiveMemo(() => {
+    // Memoize sorted groups
+    const sortedGroups = React.useMemo(() => {
         if (!data.length) return []
         return [...data].sort((a, b) => (a.order || 0) - (b.order || 0))
-    }, [data], 'sortedGroups-computation')
+    }, [data])
 
-    // OPTIMIZED: Memoize CSS custom properties
-    const sidebarStyle = useExpensiveMemo(() => ({
+    // Memoize CSS custom properties
+    const sidebarStyle = React.useMemo(() => ({
         '--sidebar-direction': direction,
         '--sidebar-transform-origin': isRTL ? 'right' : 'left'
-    } as React.CSSProperties), [direction, isRTL], 'sidebarStyle-generation')
+    } as React.CSSProperties), [direction, isRTL])
 
-    // OPTIMIZED: Initialize data with useLayoutEffect for better performance
+    // Initialize data on mount
     React.useLayoutEffect(() => {
         if (data.length === 0) {
             setData(sidebarData)
         }
     }, [setData, data.length])
 
-    // OPTIMIZED: Memoize header and footer content
+    // Memoize header content
     const headerContent = React.useMemo(() => (
         <SidebarHeader className={cn(
             "p-2",
@@ -71,25 +69,25 @@ export function AppSidebar({
         </SidebarHeader>
     ), [isRTL])
 
+    // Memoize footer content
     const footerContent = React.useMemo(() => (
         <SidebarFooter className="p-2">
             <UserMenu user={userData} />
         </SidebarFooter>
     ), [])
 
-    // OPTIMIZED: Memoize group components to prevent unnecessary re-renders
-    const groupComponents = useExpensiveMemo(() =>
+    // Memoize group components
+    const groupComponents = React.useMemo(() =>
             sortedGroups.map((group) => (
                 <SidebarGroupComponent
                     key={group.id}
                     group={group}
                 />
             )),
-        [sortedGroups],
-        'groupComponents-rendering'
+        [sortedGroups]
     )
 
-    // Don't render if no data loaded yet
+    // Loading state with skeleton
     if (!data.length) {
         return (
             <div className="sidebar-container animate-pulse">
