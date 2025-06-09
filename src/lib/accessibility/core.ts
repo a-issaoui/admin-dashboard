@@ -1,5 +1,5 @@
 // ============================================================================
-// src/lib/accessibility/core.ts - FIXED for exactOptionalPropertyTypes
+// src/lib/accessibility/core.ts - FIXED SKIP LINKS AND OPTIMIZED
 // ============================================================================
 
 export interface AccessibilityPreferences {
@@ -77,6 +77,8 @@ class AccessibilityCore {
     }
 
     private getStoredColorBlindnessType(): AccessibilityPreferences['colorBlindnessType'] {
+        if (typeof localStorage === 'undefined') return 'none'
+
         const stored = localStorage.getItem('accessibility-color-blindness')
         const validTypes: AccessibilityPreferences['colorBlindnessType'][] = ['protanopia', 'deuteranopia', 'tritanopia', 'none']
 
@@ -96,21 +98,30 @@ class AccessibilityCore {
     }
 
     private createSkipLinks() {
-        const skipLinks = document.createElement('div')
+        // Check if skip links already exist
+        if (document.getElementById('skip-links')) return
+
+        const skipLinks = document.createElement('nav')
         skipLinks.id = 'skip-links'
-        skipLinks.className = 'skip-links sr-only-focusable'
+        skipLinks.className = 'skip-links'
         skipLinks.setAttribute('role', 'navigation')
         skipLinks.setAttribute('aria-label', 'Skip navigation links')
 
         const skipToMain = this.createSkipLink('#main-content', 'Skip to main content')
-        const skipToNav = this.createSkipLink('#main-navigation', 'Skip to navigation')
-        const skipToSearch = this.createSkipLink('#search', 'Skip to search')
+        const skipToNav = this.createSkipLink('.sidebar-container', 'Skip to navigation')
+        const skipToSearch = this.createSkipLink('[role="search"]', 'Skip to search')
 
         skipLinks.appendChild(skipToMain)
         skipLinks.appendChild(skipToNav)
         skipLinks.appendChild(skipToSearch)
 
-        document.body.insertBefore(skipLinks, document.body.firstChild)
+        // Insert at the very beginning of body
+        if (document.body.firstChild) {
+            document.body.insertBefore(skipLinks, document.body.firstChild)
+        } else {
+            document.body.appendChild(skipLinks)
+        }
+
         this.skipLinksContainer = skipLinks
     }
 
@@ -123,6 +134,10 @@ class AccessibilityCore {
             e.preventDefault()
             const targetElement = document.querySelector(target) as HTMLElement
             if (targetElement) {
+                // Make element focusable if it isn't already
+                if (!targetElement.hasAttribute('tabindex')) {
+                    targetElement.setAttribute('tabindex', '-1')
+                }
                 targetElement.focus()
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
             }
@@ -208,6 +223,9 @@ class AccessibilityCore {
     }
 
     private createAriaLiveRegions() {
+        // Check if regions already exist
+        if (document.getElementById('aria-live-polite')) return
+
         const politeRegion = document.createElement('div')
         politeRegion.id = 'aria-live-polite'
         politeRegion.setAttribute('aria-live', 'polite')
@@ -337,7 +355,9 @@ class AccessibilityCore {
     public updatePreferences(newPreferences: Partial<AccessibilityPreferences>) {
         this.preferences = { ...this.preferences, ...newPreferences }
 
-        localStorage.setItem('accessibility-preferences', JSON.stringify(this.preferences))
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('accessibility-preferences', JSON.stringify(this.preferences))
+        }
 
         this.applyAccessibilityFeatures()
 

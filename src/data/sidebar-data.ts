@@ -1,3 +1,7 @@
+// ============================================================================
+// src/data/sidebar-data.ts - FIXED ICON NAMES
+// ============================================================================
+
 import type { SidebarData } from '@/types/sidebar'
 
 export const sidebarData: SidebarData = [
@@ -10,7 +14,7 @@ export const sidebarData: SidebarData = [
                 id: 'overview',
                 titleKey: 'overview',
                 url: '/admin',
-                icon: { name: 'HouseIcon', size: 20, weight: 'regular' },
+                icon: { name: 'House', size: 20, weight: 'regular' },
                 badge: { count: 5, color: 'red' },
                 actions: [
                     { id: 'refresh-overview', type: 'refresh', shortcut: '⌘R' },
@@ -21,14 +25,14 @@ export const sidebarData: SidebarData = [
                 id: 'analytics',
                 titleKey: 'analytics',
                 url: '/admin/analytics',
-                icon: { name: 'ChartBarIcon', size: 20, weight: 'bold' },
+                icon: { name: 'ChartBar', size: 20, weight: 'bold' },
                 badge: { count: 12, color: 'blue' }
             },
             {
                 id: 'reports',
                 titleKey: 'reports',
                 url: '/admin/reports',
-                icon: { name: 'FileTextIcon', size: 20, weight: 'light' },
+                icon: { name: 'FileText', size: 20, weight: 'light' },
                 badge: { count: 3, color: 'green' }
             }
         ]
@@ -40,33 +44,35 @@ export const sidebarData: SidebarData = [
                 id: 'home',
                 titleKey: 'home',
                 url: '/home',
-                icon: { name: 'HouseIcon', size: 20, weight: 'fill' }
+                icon: { name: 'House', size: 20, weight: 'fill' }
             },
             {
                 id: 'inbox',
                 titleKey: 'inbox',
                 url: '/inbox',
-                icon: { name: 'EnvelopeIcon', size: 20, weight: 'regular' },
+                icon: { name: 'Envelope', size: 20, weight: 'regular' },
                 badge: { count: 5, color: 'red' }
             },
             {
                 id: 'notifications',
                 titleKey: 'notifications',
-                icon: { name: 'BellIcon', size: 20, weight: 'bold' },
+                icon: { name: 'Bell', size: 20, weight: 'bold' },
                 defaultExpanded: true,
+                // Show notification indicator even with no specific count
+                badge: { color: 'red' }, // This will show as a red dot
                 submenu: [
                     {
                         id: 'all-notifications',
                         titleKey: 'notifications',
                         url: '/notifications',
-                        icon: { name: 'BellIcon', size: 16, weight: 'fill' },
+                        icon: { name: 'Bell', size: 16, weight: 'fill' },
                         badge: { count: 8, color: 'blue' }
                     },
                     {
                         id: 'pending-notifications',
                         titleKey: 'pending',
                         url: '/notifications/pending',
-                        icon: { name: 'ClockIcon', size: 16, weight: 'light' },
+                        icon: { name: 'Clock', size: 16, weight: 'light' },
                         badge: { count: 3, color: 'yellow' }
                     }
                 ]
@@ -75,8 +81,16 @@ export const sidebarData: SidebarData = [
                 id: 'messages',
                 titleKey: 'messages',
                 url: '/messages',
-                icon: { name: 'EnvelopeIcon', size: 20, weight: 'duotone' },
+                icon: { name: 'Envelope', size: 20, weight: 'duotone' },
                 badge: { count: 3, color: 'green' }
+            },
+            {
+                id: 'drafts',
+                titleKey: 'drafts',
+                url: '/drafts',
+                icon: { name: 'FileText', size: 20, weight: 'light' }, // Fixed: was DocumentIcon
+                // Show notification indicator for items that have activity but no specific count
+                badge: { color: 'orange' }
             }
         ]
     },
@@ -91,28 +105,30 @@ export const sidebarData: SidebarData = [
             {
                 id: 'calendar',
                 titleKey: 'calendar',
-                icon: { name: 'CalendarIcon', size: 20, weight: 'regular' },
+                icon: { name: 'Calendar', size: 20, weight: 'regular' },
                 defaultExpanded: false,
+                // Show indicator for has activity
+                badge: { color: 'blue' },
                 submenu: [
                     {
                         id: 'events',
                         titleKey: 'events',
                         url: '/calendar/events',
-                        icon: { name: 'CalendarCheckIcon', size: 16, weight: 'bold' },
+                        icon: { name: 'CalendarCheck', size: 16, weight: 'bold' },
                         badge: { count: 5, color: 'blue' }
                     },
                     {
                         id: 'reminders',
                         titleKey: 'reminders',
                         url: '/calendar/reminders',
-                        icon: { name: 'BellIcon', size: 16, weight: 'light' },
+                        icon: { name: 'Bell', size: 16, weight: 'light' },
                         badge: { color: 'green', variant: 'ghost' }
                     },
                     {
                         id: 'holidays',
                         titleKey: 'holidays',
                         url: '/calendar/holidays',
-                        icon: { name: 'StarIcon', size: 16, weight: 'fill' },
+                        icon: { name: 'Star', size: 16, weight: 'fill' },
                         badge: { count: 2, color: 'yellow' }
                     }
                 ]
@@ -120,27 +136,28 @@ export const sidebarData: SidebarData = [
             {
                 id: 'project-list',
                 titleKey: 'projects',
-                icon: { name: 'FolderIcon', size: 20, weight: 'duotone' },
+                icon: { name: 'Folder', size: 20, weight: 'duotone' },
+                badge: { count: 42, color: 'purple' }, // Total projects indicator
                 submenu: [
                     {
                         id: 'active-projects',
                         titleKey: 'activeProjects',
                         url: '/projects/active',
-                        icon: { name: 'PlayIcon', size: 16, weight: 'fill' },
+                        icon: { name: 'Play', size: 16, weight: 'fill' },
                         badge: { count: 7, color: 'green', variant: 'outline' }
                     },
                     {
                         id: 'completed-projects',
                         titleKey: 'completed',
                         url: '/projects/completed',
-                        icon: { name: 'CheckCircleIcon', size: 16, weight: 'bold' },
+                        icon: { name: 'CheckCircle', size: 16, weight: 'bold' },
                         badge: { count: 23, color: 'blue' }
                     },
                     {
                         id: 'archived-projects',
                         titleKey: 'archived',
                         url: '/projects/archived',
-                        icon: { name: 'ArchiveIcon', size: 16, weight: 'light' },
+                        icon: { name: 'Archive', size: 16, weight: 'light' },
                         badge: { count: 12, color: 'gray' }
                     }
                 ],
@@ -153,8 +170,9 @@ export const sidebarData: SidebarData = [
                 id: 'teams',
                 titleKey: 'teams',
                 url: '/teams',
-                icon: { name: 'UsersIcon', size: 20, weight: 'bold' },
-                badge: { count: 0, color: 'orange' },
+                icon: { name: 'Users', size: 20, weight: 'bold' },
+                // Show indicator for teams with activity but no urgent count
+                badge: { color: 'orange' },
                 actions: [
                     { id: 'create-team', type: 'create' }
                 ]
@@ -177,27 +195,28 @@ export const sidebarData: SidebarData = [
             {
                 id: 'users',
                 titleKey: 'users',
-                icon: { name: 'UserIcon', size: 20, weight: 'regular' },
+                icon: { name: 'User', size: 20, weight: 'regular' },
+                badge: { count: 173, color: 'blue' }, // Total users count
                 submenu: [
                     {
                         id: 'all-users',
                         titleKey: 'allUsers',
                         url: '/users',
-                        icon: { name: 'UsersIcon', size: 16, weight: 'bold' },
+                        icon: { name: 'Users', size: 16, weight: 'bold' },
                         badge: { count: 156, color: 'blue' }
                     },
                     {
                         id: 'admins',
                         titleKey: 'admins',
                         url: '/users/admins',
-                        icon: { name: 'ShieldIcon', size: 16, weight: 'fill' },
+                        icon: { name: 'Shield', size: 16, weight: 'fill' },
                         badge: { count: 5, color: 'red' }
                     },
                     {
                         id: 'pending-users',
                         titleKey: 'pending',
                         url: '/users/pending',
-                        icon: { name: 'ClockIcon', size: 16, weight: 'light' },
+                        icon: { name: 'Clock', size: 16, weight: 'light' },
                         badge: { count: 12, color: 'yellow' }
                     }
                 ],
@@ -210,7 +229,7 @@ export const sidebarData: SidebarData = [
                 id: 'roles',
                 titleKey: 'roles',
                 url: '/roles',
-                icon: { name: 'KeyIcon', size: 20, weight: 'duotone' },
+                icon: { name: 'Key', size: 20, weight: 'duotone' },
                 badge: { color: 'purple', variant: 'outline' },
                 actions: [
                     { id: 'create-role', type: 'create', shortcut: '⌘R' }
@@ -220,7 +239,8 @@ export const sidebarData: SidebarData = [
                 id: 'audit',
                 titleKey: 'audit',
                 url: '/audit',
-                icon: { name: 'FileTextIcon', size: 20, weight: 'thin' },
+                icon: { name: 'FileText', size: 20, weight: 'thin' },
+                // Show indicator for audit activity
                 badge: { color: 'gray' },
                 actions: [
                     { id: 'export-logs', type: 'export', shortcut: '⌘L' },

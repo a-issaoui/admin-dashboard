@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/components/sidebar-item.tsx
+// src/components/layout/admin/sidebar/components/sidebar-item.tsx - OPTIMIZED
 // ============================================================================
 
 'use client'
@@ -22,7 +22,6 @@ import {
     SidebarMenuSubItem,
     SidebarMenuSubButton
 } from '@/components/ui/sidebar'
-import { a11y } from '@/lib/accessibility'
 import { useIsRTL } from '@/lib/stores/locale-store'
 import { useSidebarStore } from '@/lib/stores/sidebar-store'
 import { cn } from '@/lib/utils'
@@ -33,40 +32,27 @@ import { SidebarBadge } from './sidebar-badge'
 interface SidebarItemProps {
     item: SidebarMenuItemType
     className?: string
-    level?: number
 }
 
-interface ComputedItemState {
-    hasSubmenu: boolean
-    hasActions: boolean
-    isActive: boolean
-    hasActiveChild: boolean
-    title: string
-    isCollapsed: boolean
-    ariaExpanded: boolean | undefined
-    ariaControls: string | undefined
-}
-
-
-// Memoized icon component to prevent unnecessary re-renders
+// Simple icon component
 const ItemIcon = React.memo(function ItemIcon({
                                                   icon,
                                                   className
                                               }: {
-    icon?: IconProps | undefined  // Explicitly allow undefined
+    icon?: IconProps | undefined
     className?: string
 }) {
     if (!icon) return null
     return <Icon {...icon} className={cn("shrink-0", className)} />
 })
 
-// Memoized badge component with proper display logic
+// Badge component with notification indicator support
 const ItemBadge = React.memo(function ItemBadge({
                                                     badge,
                                                     hasActions,
                                                     className
                                                 }: {
-    badge?: Badge | undefined  // Explicitly allow undefined
+    badge?: Badge | undefined
     hasActions?: boolean
     className?: string
 }) {
@@ -83,34 +69,27 @@ const ItemBadge = React.memo(function ItemBadge({
     )
 })
 
+// Actions component
 const ItemActions = React.memo(function ItemActions({
                                                         actions,
-                                                        title,
-                                                        itemId,
-                                                        className
+                                                        title
                                                     }: {
-    actions: MenuAction[];
-    title: string;
-    itemId: string;
-    className?: string | undefined ;
+    actions: MenuAction[]
+    title: string
 }) {
     return (
         <SidebarActions
             actions={actions}
             itemTitle={title}
-            className={className}
-            aria-label={`Actions for ${title}`}
         />
     )
-});
+})
 
-// Memoized submenu component with performance optimizations
+// Submenu component - simplified
 const SubmenuItems = React.memo(function SubmenuItems({
-                                                          submenu,
-                                                          level = 1
+                                                          submenu
                                                       }: {
     submenu: SidebarSubmenu[]
-    level?: number
 }) {
     const t = useTranslations('nav')
     const pathname = usePathname()
@@ -122,7 +101,6 @@ const SubmenuItems = React.memo(function SubmenuItems({
                 "group-data-[collapsible=icon]:hidden",
                 isRTL && "border-r border-l-0 mr-3.5 ml-0 pr-2.5 pl-0"
             )}
-            style={{ '--level': level } as React.CSSProperties}
         >
             {submenu.map((subItem) => {
                 const isSubActive = subItem.url === pathname
@@ -135,7 +113,6 @@ const SubmenuItems = React.memo(function SubmenuItems({
                             asChild
                             isActive={isSubActive}
                             className={cn(
-                                "focus-visible:ring-2 focus-visible:ring-offset-2",
                                 isRTL && "flex-row-reverse"
                             )}
                         >
@@ -144,10 +121,8 @@ const SubmenuItems = React.memo(function SubmenuItems({
                                 className="flex items-center gap-2 w-full"
                                 {...(subItem.external && {
                                     target: '_blank',
-                                    rel: 'noopener noreferrer',
-                                    'aria-label': `${subTitle} (opens in new tab)`
+                                    rel: 'noopener noreferrer'
                                 })}
-                                aria-current={isSubActive ? 'page' : undefined}
                             >
                                 <ItemIcon icon={subItem.icon} />
                                 <span className="flex-1 truncate">{subTitle}</span>
@@ -162,7 +137,6 @@ const SubmenuItems = React.memo(function SubmenuItems({
                             <ItemActions
                                 actions={subItem.actions}
                                 title={subTitle}
-                                itemId={subItem.id}
                             />
                         )}
                     </SidebarMenuSubItem>
@@ -172,173 +146,102 @@ const SubmenuItems = React.memo(function SubmenuItems({
     )
 })
 
-// Main sidebar item component with comprehensive optimization
 export const SidebarItem = React.memo(function SidebarItem({
                                                                item,
-                                                               className,
-                                                               level = 0
+                                                               className
                                                            }: SidebarItemProps) {
     const t = useTranslations('nav')
     const pathname = usePathname()
     const isRTL = useIsRTL()
-    const toggleCollapsed = useSidebarStore(state => state.toggleCollapsed)
-    const isCollapsed = useSidebarStore(state =>
-        state.collapsedStates[item.id] ?? !item.defaultExpanded
-    )
+    const { toggleCollapsed, collapsedStates } = useSidebarStore()
 
-    const [submenuId] = React.useState(() => a11y.generateId(`submenu-${item.id}`))
-    const [triggerId] = React.useState(() => a11y.generateId(`trigger-${item.id}`))
-
-    const computedState = React.useMemo((): ComputedItemState => {
-        const hasSubmenu = Boolean(item.submenu?.length)
-        const hasActions = Boolean(item.actions?.length)
-        const isActive = item.url === pathname
-        const hasActiveChild = hasSubmenu &&
-            item.submenu!.some(sub => sub.url === pathname)
-        const title = t(item.titleKey)
-
-        return {
-            hasSubmenu,
-            hasActions,
-            isActive,
-            hasActiveChild,
-            title,
-            isCollapsed,
-            ariaExpanded: hasSubmenu ? !isCollapsed : undefined,
-            ariaControls: hasSubmenu ? submenuId : undefined
-        }
-    }, [item, pathname, t, isCollapsed, submenuId])
+    // Simple state calculations
+    const hasSubmenu = Boolean(item.submenu?.length)
+    const hasActions = Boolean(item.actions?.length)
+    const isActive = item.url === pathname
+    const hasActiveChild = hasSubmenu && item.submenu!.some(sub => sub.url === pathname)
+    const title = t(item.titleKey)
+    const isCollapsed = collapsedStates[item.id] ?? !item.defaultExpanded
 
     const handleToggle = React.useCallback(() => {
         toggleCollapsed(item.id)
-        const message = computedState.isCollapsed
-            ? `${computedState.title} menu expanded`
-            : `${computedState.title} menu collapsed`
-        a11y.announceToScreenReader(message, 'polite')
-    }, [toggleCollapsed, item.id, computedState.title, computedState.isCollapsed])
+    }, [toggleCollapsed, item.id])
 
-    const handleKeyDown = React.useCallback((event: React.KeyboardEvent) => {
-        a11y.handleKeyboardNavigation(event, {
-            Enter: () => {
-                if (computedState.hasSubmenu) {
-                    handleToggle()
-                } else if (item.url) {
-                    window.location.href = item.url
-                }
-            },
-            ' ': () => {
-                if (computedState.hasSubmenu) {
-                    handleToggle()
-                }
-            },
-            ArrowRight: () => {
-                if (computedState.hasSubmenu && computedState.isCollapsed && !isRTL) {
-                    handleToggle()
-                }
-            },
-            ArrowLeft: () => {
-                if (computedState.hasSubmenu && !computedState.isCollapsed && !isRTL) {
-                    handleToggle()
-                }
-            }
-        })
-    }, [computedState, handleToggle, item.url, isRTL])
-
-    const linkContent = React.useMemo(() => (
+    // Link content
+    const linkContent = (
         <div className={cn(
             "flex items-center gap-2 w-full",
             isRTL && "flex-row-reverse"
         )}>
             <ItemIcon icon={item.icon} />
-            <span className="flex-1 truncate">{computedState.title}</span>
+            <span className="flex-1 truncate">{title}</span>
             <ItemBadge
                 badge={item.badge}
-                hasActions={computedState.hasActions}
+                hasActions={hasActions}
             />
         </div>
-    ), [item.icon, item.badge, computedState.title, computedState.hasActions, isRTL])
+    )
 
-    const triggerContent = React.useMemo(() => (
+    // Trigger content for collapsible items
+    const triggerContent = (
         <div className={cn(
             "flex items-center gap-2 w-full",
             isRTL && "flex-row-reverse"
         )}>
             <ItemIcon icon={item.icon} />
-            <span className="flex-1 truncate">{computedState.title}</span>
+            <span className="flex-1 truncate">{title}</span>
             <ChevronRight
                 className={cn(
                     'h-4 w-4 shrink-0 transition-transform duration-200',
                     'group-data-[state=open]/collapsible:rotate-90',
                     isRTL && 'group-data-[state=open]/collapsible:-rotate-90',
-                    computedState.hasActions && 'mr-6'
+                    hasActions && 'mr-6'
                 )}
-                aria-hidden="true"
             />
         </div>
-    ), [item.icon, computedState.title, computedState.hasActions, isRTL])
+    )
 
-    if (computedState.hasSubmenu) {
+    // Submenu item
+    if (hasSubmenu) {
         return (
             <Collapsible
-                open={!computedState.isCollapsed}
+                open={!isCollapsed}
                 onOpenChange={handleToggle}
                 className="group/collapsible"
             >
                 <SidebarMenuItem className={className}>
                     <CollapsibleTrigger asChild>
                         <SidebarMenuButton
-                            id={triggerId}
-                            isActive={computedState.isActive || computedState.hasActiveChild}
+                            isActive={isActive || hasActiveChild}
                             disabled={item.disabled}
-                            className={cn(
-                                "group focus-visible:ring-2 focus-visible:ring-offset-2 w-full",
-                                item.disabled && "opacity-50 cursor-not-allowed"
-                            )}
-                            onKeyDown={handleKeyDown}
-                            aria-expanded={computedState.ariaExpanded}
-                            aria-controls={computedState.ariaControls}
-                            aria-label={`${computedState.title} menu, ${
-                                computedState.isCollapsed ? 'collapsed' : 'expanded'
-                            }`}
+                            className="w-full"
                         >
                             {triggerContent}
                         </SidebarMenuButton>
                     </CollapsibleTrigger>
 
-                    {computedState.hasActions && item.actions && (
+                    {hasActions && item.actions && (
                         <ItemActions
                             actions={item.actions}
-                            title={computedState.title}
-                            itemId={item.id}
+                            title={title}
                         />
                     )}
 
                     <CollapsibleContent>
-                        <div id={submenuId} role="group" aria-label={`${computedState.title} submenu`}>
-                            <SubmenuItems
-                                submenu={item.submenu!}
-                                level={level + 1}
-                            />
-                        </div>
+                        <SubmenuItems submenu={item.submenu!} />
                     </CollapsibleContent>
                 </SidebarMenuItem>
             </Collapsible>
         )
     }
 
+    // Regular item
     return (
         <SidebarMenuItem className={className}>
             <SidebarMenuButton
                 asChild={!!item.url}
-                isActive={computedState.isActive}
+                isActive={isActive}
                 disabled={item.disabled}
-                className={cn(
-                    "group focus-visible:ring-2 focus-visible:ring-offset-2",
-                    item.disabled && "opacity-50 cursor-not-allowed"
-                )}
-                onKeyDown={handleKeyDown}
-                aria-current={computedState.isActive ? 'page' : undefined}
-                aria-label={computedState.title}
             >
                 {item.url ? (
                     <Link
@@ -349,10 +252,8 @@ export const SidebarItem = React.memo(function SidebarItem({
                         )}
                         {...(item.external && {
                             target: '_blank',
-                            rel: 'noopener noreferrer',
-                            'aria-label': `${computedState.title} (opens in new tab)`
+                            rel: 'noopener noreferrer'
                         })}
-                        tabIndex={item.disabled ? -1 : undefined}
                     >
                         {linkContent}
                     </Link>
@@ -366,15 +267,12 @@ export const SidebarItem = React.memo(function SidebarItem({
                 )}
             </SidebarMenuButton>
 
-            {computedState.hasActions && item.actions && (
+            {hasActions && item.actions && (
                 <ItemActions
                     actions={item.actions}
-                    title={computedState.title}
-                    itemId={item.id}
+                    title={title}
                 />
             )}
         </SidebarMenuItem>
     )
 })
-
-SidebarItem.displayName = 'SidebarItem'

@@ -10,6 +10,7 @@
     "dev": "next dev --turbopack --port 3180",
     "dev:webpack": "next dev --port 3180",
     "dev:fast": "next dev --turbopack --port 3180 --experimental-https",
+    "dev:clean": "pnpm clean && pnpm dev",
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
@@ -29,7 +30,10 @@
     "postinstall": "next telemetry disable",
     "perf:lighthouse": "lighthouse http://localhost:3180 --output=html --output-path=./lighthouse-report.html",
     "perf:bundle": "npx @next/bundle-analyzer output-path=./lighthouse-report.html",
-    "deps:update": "pnpm update --interactive --latest"
+    "deps:update": "pnpm update --interactive --latest",
+    "fix:hmr": "pkill -f 'next dev' || true && rm -rf .next .turbo node_modules/.cache && pnpm dev",
+    "fix:hmr:hard": "pkill -f 'next dev' || true && rm -rf .next .turbo node_modules/.cache node_modules pnpm-lock.yaml && pnpm install && pnpm dev",
+    "restart": "pkill -f 'next dev' || true && pnpm dev"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^15.3.3",
