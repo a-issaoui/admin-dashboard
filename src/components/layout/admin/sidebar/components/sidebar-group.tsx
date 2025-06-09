@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/components/sidebar-group.tsx - STANDARD REACT PATTERNS
+// src/components/layout/admin/sidebar/components/sidebar-group.tsx - OPTIMIZED
 // ============================================================================
 
 'use client'
@@ -19,7 +19,6 @@ import {
     SidebarMenu,
     useSidebar
 } from '@/components/ui/sidebar'
-import { useRenderPerformance } from '@/hooks/use-performance'
 import { useSidebarStore } from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import type { SidebarGroup as SidebarGroupType } from '@/types/sidebar'
@@ -31,92 +30,96 @@ interface SidebarGroupProps {
     className?: string
 }
 
+// Memoized child components to prevent cascade re-renders
+const MemoizedSidebarItem = React.memo(SidebarItem)
+const MemoizedSidebarActions = React.memo(SidebarActions)
+
 export const SidebarGroupComponent = React.memo(function SidebarGroupComponent({
                                                                                    group,
                                                                                    className
                                                                                }: SidebarGroupProps) {
-    // Monitor render performance in development
-    useRenderPerformance(`SidebarGroup-${group.id}`)
-
     const t = useTranslations('nav')
     const { state } = useSidebar()
-    const { collapsedStates, toggleCollapsed } = useSidebarStore()
 
-    // Memoize computed state values
-    const computedState = React.useMemo(() => {
-        const isCollapsed = state === 'collapsed'
-        const hasActions = group.actions && group.actions.length > 0
-        const isGroupCollapsed = collapsedStates[`group-${group.id}`] ?? !group.defaultOpen
-        const showTitle = group.titleKey && !isCollapsed
-        const title = group.titleKey ? t(group.titleKey) : ''
+    // Optimized store subscription - only get what we need
+    const isGroupCollapsed = useSidebarStore(
+        React.useCallback(
+            (state) => state.collapsedStates[`group-${group.id}`] ?? !group.defaultOpen,
+            [group.id, group.defaultOpen]
+        )
+    )
+    const toggleCollapsed = useSidebarStore(state => state.toggleCollapsed)
 
-        return {
-            isCollapsed,
-            hasActions,
-            isGroupCollapsed,
-            showTitle,
-            title
-        }
-    }, [state, group.actions, group.defaultOpen, group.titleKey, collapsedStates, group.id, t])
+    // Pre-compute stable values to avoid recalculation
+    const groupConfig = React.useMemo(() => ({
+        isCollapsed: state === 'collapsed',
+        hasActions: Boolean(group.actions?.length),
+        showTitle: Boolean(group.titleKey && state !== 'collapsed'),
+        title: group.titleKey ? t(group.titleKey) : '',
+        collapsibleKey: `group-${group.id}`
+    }), [state, group.actions?.length, group.titleKey, group.id, t])
 
-    // Memoize toggle handler
+    // Memoize toggle handler with stable reference
     const handleToggle = React.useCallback(() => {
-        toggleCollapsed(`group-${group.id}`)
-    }, [toggleCollapsed, group.id])
+        toggleCollapsed(groupConfig.collapsibleKey)
+    }, [toggleCollapsed, groupConfig.collapsibleKey])
 
-    // Memoize menu items to prevent unnecessary re-renders
+    // Optimize menu items rendering - use keys that won't change
     const menuItems = React.useMemo(() =>
             group.menu.map((item) => (
-                <SidebarItem key={item.id} item={item} />
+                <MemoizedSidebarItem key={item.id} item={item} />
             )),
         [group.menu]
     )
 
-    // Memoize collapsible trigger content
+    // Memoize trigger content to prevent recreation
     const triggerContent = React.useMemo(() => (
-        <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 focus-visible:ring-2 focus-visible:ring-offset-2">
-            <span className="truncate">{computedState.title}</span>
+        <>
+            <span className="truncate">{groupConfig.title}</span>
             <ChevronRight
                 className={cn(
                     'h-4 w-4 shrink-0 transition-transform duration-200',
                     'group-data-[state=open]/collapsible-group:rotate-90',
-                    computedState.hasActions && 'mr-6'
+                    groupConfig.hasActions && 'mr-6'
                 )}
             />
-        </CollapsibleTrigger>
-    ), [computedState.title, computedState.hasActions])
+        </>
+    ), [groupConfig.title, groupConfig.hasActions])
 
     // Memoize group label content
     const groupLabelContent = React.useMemo(() => (
         <div className="flex items-center">
             <SidebarGroupLabel className="flex-1">
-                {computedState.title}
+                {groupConfig.title}
             </SidebarGroupLabel>
-            {computedState.hasActions && group.actions && (
-                <SidebarActions
+            {groupConfig.hasActions && group.actions && (
+                <MemoizedSidebarActions
                     actions={group.actions}
-                    itemTitle={computedState.title}
+                    itemTitle={groupConfig.title}
                 />
             )}
         </div>
-    ), [computedState.title, computedState.hasActions, group.actions])
+    ), [groupConfig.title, groupConfig.hasActions, group.actions])
 
-    // Collapsible group implementation
-    if (group.collapsible && computedState.showTitle) {
+    // Render collapsible group
+    if (group.collapsible && groupConfig.showTitle) {
         return (
             <Collapsible
-                open={!computedState.isGroupCollapsed}
+                open={!isGroupCollapsed}
                 onOpenChange={handleToggle}
                 className="group/collapsible-group"
             >
                 <SidebarGroup className={className}>
                     <SidebarGroupLabel asChild className="flex-1">
-                        {triggerContent}
+                        <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 focus-visible:ring-2 focus-visible:ring-offset-2">
+                            {triggerContent}
+                        </CollapsibleTrigger>
                     </SidebarGroupLabel>
-                    {computedState.hasActions && group.actions && (
-                        <SidebarActions
+
+                    {groupConfig.hasActions && group.actions && (
+                        <MemoizedSidebarActions
                             actions={group.actions}
-                            itemTitle={computedState.title}
+                            itemTitle={groupConfig.title}
                         />
                     )}
 
@@ -132,10 +135,10 @@ export const SidebarGroupComponent = React.memo(function SidebarGroupComponent({
         )
     }
 
-    // Standard group implementation
+    // Render standard group
     return (
         <SidebarGroup className={className}>
-            {computedState.showTitle && groupLabelContent}
+            {groupConfig.showTitle && groupLabelContent}
             <SidebarGroupContent>
                 <SidebarMenu>
                     {menuItems}
@@ -144,3 +147,5 @@ export const SidebarGroupComponent = React.memo(function SidebarGroupComponent({
         </SidebarGroup>
     )
 })
+
+SidebarGroupComponent.displayName = 'SidebarGroupComponent'

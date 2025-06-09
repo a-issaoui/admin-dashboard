@@ -1,5 +1,5 @@
 // ============================================================================
-// src/components/layout/admin/sidebar/app-sidebar.tsx - STANDARD REACT PATTERNS
+// src/components/layout/admin/sidebar/app-sidebar.tsx - PERFORMANCE OPTIMIZED
 // ============================================================================
 
 'use client'
@@ -9,7 +9,6 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarRail } fr
 import { orgData } from '@/data/org-data'
 import { sidebarData } from '@/data/sidebar-data'
 import { userData } from '@/data/user-data'
-import { useRenderPerformance } from '@/hooks/use-performance'
 import { useSidebarStore, useDirection, useIsRTL } from '@/lib/stores'
 import { cn } from '@/lib/utils'
 import { SidebarGroupComponent } from './components/sidebar-group'
@@ -23,74 +22,54 @@ interface AppSidebarProps {
     className?: string
 }
 
-export function AppSidebar({
-                               variant = 'sidebar',
-                               collapsible = 'icon',
-                               className
-                           }: AppSidebarProps) {
-    // Monitor render performance in development
-    useRenderPerformance('AppSidebar')
+// Memoized group component to prevent unnecessary re-renders
+const MemoizedSidebarGroup = React.memo(SidebarGroupComponent)
 
+// Memoized static components
+const MemoizedOrgProfile = React.memo(OrgProfile)
+const MemoizedUserMenu = React.memo(UserMenu)
+
+export const AppSidebar = React.memo(function AppSidebar({
+                                                             variant = 'sidebar',
+                                                             collapsible = 'icon',
+                                                             className
+                                                         }: AppSidebarProps) {
     const { setData, data } = useSidebarStore()
     const direction = useDirection()
     const isRTL = useIsRTL()
 
-    // Memoize side calculation
-    const sidebarSide = React.useMemo(() => {
-        return isRTL ? 'right' : 'left'
-    }, [isRTL])
+    // Initialize data only once on mount - moved to useEffect to prevent render blocking
+    React.useEffect(() => {
+        if (data.length === 0) {
+            // Use startTransition to make this non-blocking
+            React.startTransition(() => {
+                setData(sidebarData)
+            })
+        }
+    }, [setData, data.length])
 
-    // Memoize sorted groups
+    // Memoize sidebar side calculation
+    const sidebarSide = React.useMemo(() => isRTL ? 'right' : 'left', [isRTL])
+
+    // Pre-sort and memoize groups with stable reference
     const sortedGroups = React.useMemo(() => {
         if (!data.length) return []
-        return [...data].sort((a, b) => (a.order || 0) - (b.order || 0))
+
+        // Use a more efficient sorting approach
+        const sorted = data.slice().sort((a, b) => (a.order || 0) - (b.order || 0))
+        return sorted
     }, [data])
 
-    // Memoize CSS custom properties
+    // Memoize CSS custom properties with stable reference
     const sidebarStyle = React.useMemo(() => ({
         '--sidebar-direction': direction,
         '--sidebar-transform-origin': isRTL ? 'right' : 'left'
     } as React.CSSProperties), [direction, isRTL])
 
-    // Initialize data on mount
-    React.useLayoutEffect(() => {
-        if (data.length === 0) {
-            setData(sidebarData)
-        }
-    }, [setData, data.length])
-
-    // Memoize header content
-    const headerContent = React.useMemo(() => (
-        <SidebarHeader className={cn(
-            "p-2",
-            isRTL && "flex-row-reverse"
-        )}>
-            <OrgProfile org={orgData} />
-        </SidebarHeader>
-    ), [isRTL])
-
-    // Memoize footer content
-    const footerContent = React.useMemo(() => (
-        <SidebarFooter className="p-2">
-            <UserMenu user={userData} />
-        </SidebarFooter>
-    ), [])
-
-    // Memoize group components
-    const groupComponents = React.useMemo(() =>
-            sortedGroups.map((group) => (
-                <SidebarGroupComponent
-                    key={group.id}
-                    group={group}
-                />
-            )),
-        [sortedGroups]
-    )
-
-    // Loading state with skeleton
+    // Early return for loading state with minimal skeleton
     if (!data.length) {
         return (
-            <div className="sidebar-container animate-pulse">
+            <div className="sidebar-container">
                 <Sidebar
                     variant={variant}
                     side={sidebarSide}
@@ -100,14 +79,12 @@ export function AppSidebar({
                     <SidebarHeader className="p-2">
                         <div className="h-10 bg-muted rounded animate-pulse" />
                     </SidebarHeader>
-                    <SidebarContent className="space-y-2">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                            <div key={i} className="p-2 space-y-1">
-                                <div className="h-4 bg-muted rounded animate-pulse" />
-                                <div className="h-8 bg-muted rounded animate-pulse" />
-                                <div className="h-6 bg-muted rounded animate-pulse ml-4" />
-                            </div>
-                        ))}
+                    <SidebarContent>
+                        <div className="p-2 space-y-2">
+                            <div className="h-4 bg-muted rounded animate-pulse" />
+                            <div className="h-8 bg-muted rounded animate-pulse" />
+                            <div className="h-6 bg-muted rounded animate-pulse ml-4" />
+                        </div>
                     </SidebarContent>
                     <SidebarFooter className="p-2">
                         <div className="h-10 bg-muted rounded animate-pulse" />
@@ -130,16 +107,27 @@ export function AppSidebar({
                 className={className}
                 data-locale-direction={direction}
             >
-                {headerContent}
+                <SidebarHeader className={cn("p-2", isRTL && "flex-row-reverse")}>
+                    <MemoizedOrgProfile org={orgData} />
+                </SidebarHeader>
 
                 <SidebarContent>
-                    {groupComponents}
+                    {sortedGroups.map((group) => (
+                        <MemoizedSidebarGroup
+                            key={group.id}
+                            group={group}
+                        />
+                    ))}
                 </SidebarContent>
 
-                {footerContent}
+                <SidebarFooter className="p-2">
+                    <MemoizedUserMenu user={userData} />
+                </SidebarFooter>
 
                 <SidebarRail />
             </Sidebar>
         </div>
     )
-}
+})
+
+AppSidebar.displayName = 'AppSidebar'
