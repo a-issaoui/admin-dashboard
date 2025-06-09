@@ -46,13 +46,13 @@ class ErrorManager {
         this._reportingService = {
             reportError: async (error: TypedError) => {
                 try {
-                    const serializedError: SerializedError = {
-                        message: error.message,
-                        code: error.code,
-                        statusCode: error.statusCode,
-                        context: error.context || this.createDefaultContext(),
-                        stack: error.stack,
-                        timestamp: Date.now()
+                    interface SerializedError {
+                        message: string
+                        code: string
+                        statusCode: number
+                        context: ErrorContext
+                        stack?: string  // Make stack optional
+                        timestamp: number
                     }
                     // In a real app, you would send this to your logging endpoint
                     // console.info("Reporting error to production service:", serializedError);

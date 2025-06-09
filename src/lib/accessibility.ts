@@ -266,3 +266,6 @@ class AccessibilityUtils {
 
 export const a11y = new AccessibilityUtils()
 export default a11y
+// src/lib/accessibility.ts
+// Add at the end of the file:
+export * from './accessibility/core'

@@ -10,6 +10,8 @@ export class AppError extends Error {
     public context?: ErrorContext;
     public readonly isOperational: boolean;
 
+// src/lib/error-handler.ts
+// Update the constructor (around line 24):
     constructor(
         message: string,
         code: string = 'UNKNOWN_ERROR',
@@ -21,7 +23,9 @@ export class AppError extends Error {
         this.name = 'AppError'
         this.code = code
         this.statusCode = statusCode
-        this.context = context
+        if (context) {
+            this.context = context
+        }
         this.isOperational = isOperational
 
         Error.captureStackTrace(this, this.constructor)

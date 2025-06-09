@@ -28,6 +28,8 @@ export type DeepPartial<T> = {
     [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
 }
 
+// src/types/common.ts
+// Update ErrorContext interface to:
 export interface ErrorContext {
     component: string
     action: string
@@ -37,6 +39,7 @@ export interface ErrorContext {
     userAgent: string
     url: string
     additionalInfo?: Record<string, unknown>
+    [key: string]: unknown  // Allow additional properties
 }
 
 export class TypedError extends Error {

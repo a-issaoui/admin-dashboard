@@ -3,8 +3,8 @@
 // ============================================================================
 import * as React from 'react'
 import { onCLS, onFCP, onLCP, onTTFB, onINP, Metric } from 'web-vitals'
-import { errorManager } from './error-management'
 import { TypedError } from '@/types/common';
+import { errorManager } from './error-management'
 
 export interface PerformanceMetric {
     name: string

@@ -23,8 +23,8 @@ import {
     SidebarMenuSubButton
 } from '@/components/ui/sidebar'
 import { accessibilityCore } from '@/lib/accessibility/core'
-import { useSidebarStore } from '@/lib/stores/sidebar-store'
 import { useIsRTL } from '@/lib/stores/locale-store'
+import { useSidebarStore } from '@/lib/stores/sidebar-store'
 import { cn } from '@/lib/utils'
 import type { SidebarMenuItem as SidebarMenuItemType, SidebarSubmenu, MenuAction, Badge } from '@/types/sidebar'
 import { SidebarActions } from './sidebar-actions'
@@ -34,8 +34,9 @@ import { SidebarBadge } from './sidebar-badge'
 const a11y = {
     generateId: (prefix: string) => `${prefix}-${Math.random().toString(36).substring(2, 9)}`,
     handleKeyboardNavigation: (event: React.KeyboardEvent, handlers: Record<string, () => void>) => {
-        if (handlers[event.key]) {
-            handlers[event.key]();
+        const handler = handlers[event.key];
+        if (handler) {
+            handler();
         }
     },
     announceToScreenReader: (message: string, priority: 'polite' | 'assertive') => {
@@ -60,19 +61,13 @@ interface ComputedItemState {
     ariaControls: string | undefined
 }
 
-interface ItemActionsProps {
-    actions: MenuAction[];
-    title: string;
-    itemId: string;
-    className?: string;
-}
 
 // Memoized icon component to prevent unnecessary re-renders
 const ItemIcon = React.memo(function ItemIcon({
                                                   icon,
                                                   className
                                               }: {
-    icon?: IconProps
+    icon?: IconProps | undefined  // Explicitly allow undefined
     className?: string
 }) {
     if (!icon) return null
@@ -85,7 +80,7 @@ const ItemBadge = React.memo(function ItemBadge({
                                                     hasActions,
                                                     className
                                                 }: {
-    badge?: Badge
+    badge?: Badge | undefined  // Explicitly allow undefined
     hasActions?: boolean
     className?: string
 }) {
@@ -95,7 +90,7 @@ const ItemBadge = React.memo(function ItemBadge({
         <SidebarBadge
             badge={badge}
             className={cn(
-                hasActions && "mr-6", // Provide space for actions menu
+                hasActions && "mr-6",
                 className
             )}
         />
@@ -107,7 +102,12 @@ const ItemActions = React.memo(function ItemActions({
                                                         title,
                                                         itemId,
                                                         className
-                                                    }:ItemActionsProps) {
+                                                    }: {
+    actions: MenuAction[];
+    title: string;
+    itemId: string;
+    className?: string | undefined ;
+}) {
     return (
         <SidebarActions
             actions={actions}

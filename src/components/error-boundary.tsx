@@ -7,7 +7,7 @@
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AppError } from '@/lib/accessibility' // Corrected import path
+import { AppError } from '@/lib/error-handler'
 
 interface ErrorBoundaryState {
     hasError: boolean

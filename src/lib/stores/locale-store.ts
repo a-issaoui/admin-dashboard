@@ -7,8 +7,8 @@ import { create } from 'zustand'
 import { persist , subscribeWithSelector } from 'zustand/middleware'
 import { notifications } from '@/components/ui/notification-system'
 import { errorManager } from '@/lib/error-management'
-import type { LocaleCode, LocaleConfig } from '@/types/locale'
 import { TypedError } from '@/types/common';
+import type { LocaleCode, LocaleConfig } from '@/types/locale'
 
 const LOCALES: LocaleConfig[] = [
     {

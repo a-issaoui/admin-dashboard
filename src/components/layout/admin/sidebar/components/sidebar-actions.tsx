@@ -24,7 +24,7 @@ import type { MenuAction } from '@/types/sidebar'
 interface SidebarActionsProps {
   actions: MenuAction[]
   itemTitle: string
-  className?: string
+  className?: string | undefined
 }
 
 export function SidebarActions({ actions, itemTitle, className }: SidebarActionsProps) {
