@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -49,15 +48,10 @@
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 
-  /* OPTIMIZED: Performance-focused transition variables */
-  --locale-transition-duration: 150ms; /* Reduced from 200ms */
-  --locale-transition-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --sidebar-transition-duration: 150ms; /* Reduced from 200ms */
-  --sidebar-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Simplified transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* RTL-specific variables */
-  --rtl-transform-origin: left;
-  --rtl-sidebar-position: left;
 }
 
 .dark {
@@ -93,12 +87,6 @@
   --sidebar-accent-foreground: oklch(0.8823 0.0571 254.1284);
   --sidebar-border: oklch(0.3715 0 0);
   --sidebar-ring: oklch(0.6231 0.1880 259.8145);
-}
-
-/* RTL-specific CSS variables */
-[dir="rtl"] {
-  --rtl-transform-origin: right;
-  --rtl-sidebar-position: right;
 }
 
 @theme inline {
@@ -156,7 +144,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
 
   body {
@@ -164,167 +152,26 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* OPTIMIZED: Only transition direction when it actually changes */
-  html {
-    transform-origin: var(--rtl-transform-origin);
-    /* PERFORMANCE: Use more efficient transform instead of layout changes */
-    will-change: auto; /* Let browser decide what to optimize */
+  /* Minimal RTL support */
+  [dir="rtl"] {
+    text-align: right;
   }
 
-  /* Only apply transitions during actual locale changes */
-  html.locale-transitioning {
-    pointer-events: none;
-    transition: direction var(--locale-transition-duration) var(--locale-transition-easing);
-  }
-
-  /* OPTIMIZED: Reduce transition scope to only essential properties */
-  html.locale-transitioning [data-slot="sidebar"] {
-    transition:
-            transform var(--locale-transition-duration) var(--locale-transition-easing),
-            left var(--locale-transition-duration) var(--locale-transition-easing),
-            right var(--locale-transition-duration) var(--locale-transition-easing);
+  [dir="ltr"] {
+    text-align: left;
   }
 }
 
-/* OPTIMIZED: Sidebar performance improvements */
-.sidebar-container {
-  contain: layout style;
-  transform-origin: var(--rtl-transform-origin);
-  /* Use CSS containment for better performance */
-}
-
-.sidebar-container[data-direction="rtl"] [data-slot="sidebar"] {
-  transform-origin: right center;
-}
-
-.sidebar-container[data-direction="ltr"] [data-slot="sidebar"] {
-  transform-origin: left center;
-}
-
-/* OPTIMIZED: Only apply transitions when needed */
-[data-slot="sidebar"] {
-  /* Remove default transitions that cause flashing */
-  contain: layout; /* Optimize layout calculations */
-}
-
-/* Apply transitions only during locale changes */
-html.locale-transitioning [data-slot="sidebar"] {
-  transition:
-          width var(--sidebar-transition-duration) var(--sidebar-transition-easing),
-          transform var(--sidebar-transition-duration) var(--sidebar-transition-easing),
-          left var(--sidebar-transition-duration) var(--sidebar-transition-easing),
-          right var(--sidebar-transition-duration) var(--sidebar-transition-easing);
-}
-
-/* OPTIMIZED: Faster menu item interactions */
+/* Essential component styles only */
 [data-slot="sidebar-menu-button"] {
-  contain: layout;
-  transition:
-          background-color 80ms ease-in-out, /* Reduced from 100ms */
-          color 80ms ease-in-out,
-          transform 80ms ease-in-out;
-  /* Use transform for hover effects instead of layout changes */
+  transition: background-color var(--transition-fast);
 }
 
 [data-slot="sidebar-menu-button"]:hover {
-  transform: translateX(1px);
+  background-color: var(--sidebar-accent);
 }
 
-[dir="rtl"] [data-slot="sidebar-menu-button"]:hover {
-  transform: translateX(-1px);
-}
-
-[data-slot="sidebar-menu-item"] {
-  contain: layout;
-}
-
-/* OPTIMIZED: Immediate text alignment without transitions */
-[dir="rtl"] [data-slot="sidebar-menu-button"] {
-  text-align: right;
-}
-
-[dir="ltr"] [data-slot="sidebar-menu-button"] {
-  text-align: left;
-}
-
-/* OPTIMIZED: Performance containment */
-.sidebar-badge {
-  contain: layout size;
-}
-
-.sidebar-icon {
-  contain: layout size;
-}
-
-/* OPTIMIZED: Only apply strict containment during transitions */
-html.locale-transitioning [data-slot="sidebar"] {
-  contain: layout style; /* Reduced from strict for better performance */
-}
-
-html.locale-transitioning [data-slot="sidebar-content"] {
-  opacity: 0.95; /* Less jarring than 0.9 */
-}
-
-/* OPTIMIZED: Immediate text direction changes */
-[dir="rtl"] {
-  text-align: right;
-}
-
-[dir="ltr"] {
-  text-align: left;
-}
-
-/* OPTIMIZED: Faster dropdown positioning */
-[data-slot="dropdown-menu-content"] {
-  transition: opacity 120ms ease-in-out; /* Removed transform transition */
-  contain: layout style; /* Better performance */
-}
-
-[dir="rtl"] [data-slot="dropdown-menu-content"] {
-  transform-origin: top right;
-}
-
-[dir="ltr"] [data-slot="dropdown-menu-content"] {
-  transform-origin: top left;
-}
-
-/* OPTIMIZED: Faster skeleton loading with better performance */
-[data-slot="skeleton"] {
-  contain: layout size;
-  background: linear-gradient(
-          90deg,
-          var(--accent) 25%,
-          transparent 50%,
-          var(--accent) 75%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1s infinite; /* Faster animation */
-}
-
-@keyframes skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-[dir="rtl"] [data-slot="skeleton"] {
-  background: linear-gradient(
-          -90deg,
-          var(--accent) 25%,
-          transparent 50%,
-          var(--accent) 75%
-  );
-  background-size: 200% 100%;
-}
-
-/* OPTIMIZED: Faster collapsible animations */
-[data-slot="collapsible-content"] {
-  transition:
-          height var(--sidebar-transition-duration) var(--sidebar-transition-easing),
-          opacity 120ms ease-in-out; /* Faster opacity */
-  contain: layout; /* Better performance */
-}
-
-/* OPTIMIZED: Minimal transitions for accessibility */
+/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -332,135 +179,5 @@ html.locale-transitioning [data-slot="sidebar-content"] {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
-
-  html.locale-transitioning * {
-    transition: none !important;
-  }
-
-  /* Remove hover transforms for reduced motion */
-  [data-slot="sidebar-menu-button"]:hover {
-    transform: none;
-  }
-}
-
-/* OPTIMIZED: Smart GPU acceleration */
-html.locale-transitioning .sidebar-container,
-html.locale-transitioning [data-slot="sidebar"] {
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-}
-
-/* Remove GPU acceleration when not transitioning to save resources */
-.sidebar-container:not(.locale-transitioning),
-[data-slot="sidebar"]:not(.locale-transitioning) {
-  will-change: auto;
-  backface-visibility: visible;
-}
-
-/* OPTIMIZED: Faster tooltip animations */
-[data-slot="tooltip-content"] {
-  contain: layout size;
-  will-change: auto; /* Let browser decide */
-  transform-origin: var(--rtl-transform-origin);
-  transition: opacity 150ms ease-in-out; /* Simplified transition */
-}
-
-/* OPTIMIZED: Immediate focus management */
-[dir="rtl"] :focus-visible {
-  outline-offset: -2px;
-}
-
-[dir="ltr"] :focus-visible {
-  outline-offset: 2px;
-}
-
-/* OPTIMIZED: Minimal loading states */
-html.locale-transitioning {
-  cursor: wait;
-}
-
-html.locale-transitioning [data-slot="sidebar-menu-button"] {
-  pointer-events: none;
-}
-
-/* OPTIMIZED: Immediate badge positioning */
-[data-slot="sidebar-badge"] {
-  transition: opacity 120ms ease-in-out; /* Only opacity transition */
-  contain: layout size; /* Better performance */
-}
-
-[dir="rtl"] [data-slot="sidebar-badge"] {
-  transform-origin: right center;
-}
-
-[dir="ltr"] [data-slot="sidebar-badge"] {
-  transform-origin: left center;
-}
-
-/* PERFORMANCE: Optimize scroll performance */
-* {
-  scrollbar-width: thin;
-}
-
-/* PERFORMANCE: Optimize image loading */
-img {
-  content-visibility: auto;
-}
-
-/* PERFORMANCE: Optimize table rendering */
-table {
-  contain: layout style;
-}
-
-/* PERFORMANCE: Optimize animation performance */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideInFromRight {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideInFromLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* PERFORMANCE: Optimize component animations */
-.animate-in {
-  animation: fadeIn 200ms ease-in-out;
-}
-
-.animate-slide-in-right {
-  animation: slideInFromRight 200ms ease-in-out;
-}
-
-.animate-slide-in-left {
-  animation: slideInFromLeft 200ms ease-in-out;
-}
-
-/* PERFORMANCE: Optimize form elements */
-input, textarea, select {
-  contain: layout style;
-}
-
-/* PERFORMANCE: Optimize buttons */
-button {
-  contain: layout;
 }

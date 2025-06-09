@@ -14,18 +14,18 @@ export { useLocaleStore } from './locale-store'
 export { useSidebarStore } from './sidebar-store'
 export { useThemeStore } from './theme-store'
 
-// FIXED: Export optimized locale hooks with proper async support
+// Export locale hooks
 export {
     useCurrentLocale,
     useDirection,
     useIsRTL,
     useIsTransitioning,
     useLocales,
-    useSetLocaleAsync,  // FIXED: Now properly exported
-    useSetLocale        // FIXED: Now properly exported
+    useSetLocaleAsync,
+    useSetLocale
 } from './locale-store'
 
-// Export optimized sidebar hooks
+// Export sidebar hooks
 export {
     useSidebarData,
     useSidebarProcessedData,
@@ -40,7 +40,7 @@ export {
 export type { LocaleCode, LocaleConfig } from '@/types/locale'
 export type { SidebarData, SidebarMenuItem, SidebarGroup } from '@/types/sidebar'
 
-// OPTIMIZED: Store initialization hook with better performance
+// Store initialization hook with better performance
 export function useStoreInitialization() {
     const setTheme = useThemeStore(state => state.setTheme)
     const setLocale = useLocaleStore(state => state.setLocale)
@@ -49,7 +49,7 @@ export function useStoreInitialization() {
     React.useLayoutEffect(() => {
         if (isInitialized) return
 
-        // Initialize theme from system preference (faster)
+        // Initialize theme from system preference
         const initTheme = () => {
             try {
                 const savedTheme = localStorage.getItem('theme-store')
@@ -63,11 +63,10 @@ export function useStoreInitialization() {
             return 'system'
         }
 
-        // FIXED: Initialize locale from cookie with proper typing
+        // Initialize locale from cookie
         const initLocale = (): LocaleCode => {
             try {
                 const cookieLocale = getCookie('locale') as string
-                // Validate locale is one of the supported ones
                 if (cookieLocale && ['en', 'fr', 'ar'].includes(cookieLocale)) {
                     return cookieLocale as LocaleCode
                 }
@@ -86,7 +85,7 @@ export function useStoreInitialization() {
     return isInitialized
 }
 
-// OPTIMIZED: Performance monitoring hook for stores
+// Performance monitoring hook for stores
 export function useStorePerformance() {
     const localeStore = useLocaleStore()
     const sidebarStore = useSidebarStore()
@@ -100,7 +99,7 @@ export function useStorePerformance() {
         },
         sidebar: {
             isLoading: sidebarStore.isLoading,
-            isDataLoaded: sidebarStore.isDataLoaded,
+            isDataLoaded: sidebarStore.data.length > 0,
             itemCount: sidebarStore.data.length
         },
         theme: {
@@ -110,9 +109,8 @@ export function useStorePerformance() {
     }), [localeStore, sidebarStore, themeStore])
 }
 
-// OPTIMIZED: Batch store updates for better performance
+// Batch store updates for better performance
 export function useBatchStoreUpdates() {
-    // FIXED: Import hooks from the correct modules
     const setLocale = useLocaleStore(state => state.setLocale)
     const setTheme = useThemeStore(state => state.setTheme)
     const setSidebarData = useSidebarStore(state => state.setData)

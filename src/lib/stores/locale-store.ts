@@ -1,5 +1,5 @@
 // ============================================================================
-// src/lib/stores/locale-store.ts - FIXED with proper async export
+// src/lib/stores/locale-store.ts - SIMPLIFIED APPROACH
 // ============================================================================
 
 import { setCookie } from 'cookies-next'
@@ -31,9 +31,6 @@ const LOCALES: LocaleConfig[] = [
     }
 ]
 
-const DEFAULT_LOCALE: LocaleCode = 'en'
-const LOCALE_COOKIE = 'locale'
-
 interface LocaleStore extends LocaleState {
     locales: LocaleConfig[]
     isTransitioning: boolean
@@ -41,26 +38,24 @@ interface LocaleStore extends LocaleState {
     setLocaleAsync: (locale: LocaleCode) => Promise<void>
     getCurrentLocale: () => LocaleConfig
     isRTL: () => boolean
-    startTransition: () => void
-    endTransition: () => void
 }
 
 export const useLocaleStore = create<LocaleStore>()(
     persist(
         (set, get) => ({
             // State
-            current: DEFAULT_LOCALE,
+            current: 'en',
             direction: 'ltr',
             isLoading: false,
             isTransitioning: false,
             locales: LOCALES,
 
-            // FIXED: Synchronous setter for immediate updates
+            // Single, simple locale setter
             setLocale: (locale: LocaleCode) => {
                 const localeConfig = LOCALES.find(l => l.code === locale)
                 if (!localeConfig) return
 
-                // Update store immediately
+                // Update store state only
                 set({
                     current: locale,
                     direction: localeConfig.direction,
@@ -68,9 +63,9 @@ export const useLocaleStore = create<LocaleStore>()(
                     isTransitioning: false
                 })
 
-                // Set cookie with better error handling
+                // Handle cookie with error handling
                 try {
-                    setCookie(LOCALE_COOKIE, locale, {
+                    setCookie('locale', locale, {
                         maxAge: 365 * 24 * 60 * 60,
                         path: '/',
                         sameSite: 'lax'
@@ -78,92 +73,14 @@ export const useLocaleStore = create<LocaleStore>()(
                 } catch (error) {
                     console.warn('Failed to set locale cookie:', error)
                 }
-
-                // Update document attributes immediately with error handling
-                if (typeof document !== 'undefined') {
-                    try {
-                        const root = document.documentElement
-                        root.lang = locale
-                        root.dir = localeConfig.direction
-                        root.setAttribute('data-locale', locale)
-                        root.setAttribute('data-direction', localeConfig.direction)
-                    } catch (error) {
-                        console.warn('Failed to update document attributes:', error)
-                    }
-                }
             },
 
-            // FIXED: Async setter with proper error handling
+            // Simplified async setter for compatibility
             setLocaleAsync: async (locale: LocaleCode) => {
-                const currentLocale = get().current
-                if (currentLocale === locale) return
-
-                const localeConfig = LOCALES.find(l => l.code === locale)
-                if (!localeConfig) {
-                    throw new Error(`Locale ${locale} not supported`)
-                }
-
-                // Only show transition if direction is changing
-                const currentDirection = get().direction
-                const needsTransition = currentDirection !== localeConfig.direction
-
-                if (needsTransition) {
-                    set({ isTransitioning: true })
-                }
-
-                try {
-                    // Set cookie first with error handling
-                    try {
-                        setCookie(LOCALE_COOKIE, locale, {
-                            maxAge: 365 * 24 * 60 * 60,
-                            path: '/',
-                            sameSite: 'lax'
-                        })
-                    } catch (error) {
-                        console.warn('Failed to set locale cookie:', error)
-                    }
-
-                    // Update document with transition class only if needed
-                    if (typeof document !== 'undefined') {
-                        try {
-                            const root = document.documentElement
-
-                            if (needsTransition) {
-                                root.classList.add('locale-transitioning')
-                            }
-
-                            // Update attributes
-                            root.lang = locale
-                            root.dir = localeConfig.direction
-                            root.setAttribute('data-locale', locale)
-                            root.setAttribute('data-direction', localeConfig.direction)
-
-                            // Remove transition class after duration
-                            if (needsTransition) {
-                                setTimeout(() => {
-                                    root.classList.remove('locale-transitioning')
-                                    set({ isTransitioning: false })
-                                }, 200)
-                            }
-                        } catch (error) {
-                            console.warn('Failed to update document during transition:', error)
-                            set({ isTransitioning: false })
-                        }
-                    }
-
-                    // Update state
-                    set({
-                        current: locale,
-                        direction: localeConfig.direction,
-                        isLoading: false,
-                        isTransitioning: needsTransition ? get().isTransitioning : false
-                    })
-
-                } catch (error) {
-                    console.error('Failed to set locale:', error)
-                    set({ isLoading: false, isTransitioning: false })
-                    throw error
-                }
+                const { setLocale } = get()
+                setLocale(locale)
+                // Simple promise resolution for compatibility
+                return Promise.resolve()
             },
 
             getCurrentLocale: () => {
@@ -171,9 +88,7 @@ export const useLocaleStore = create<LocaleStore>()(
                 return LOCALES.find(l => l.code === current) || LOCALES[0]!
             },
 
-            isRTL: () => get().direction === 'rtl',
-            startTransition: () => set({ isTransitioning: true }),
-            endTransition: () => set({ isTransitioning: false })
+            isRTL: () => get().direction === 'rtl'
         }),
         {
             name: 'locale-store',
@@ -185,11 +100,11 @@ export const useLocaleStore = create<LocaleStore>()(
     )
 )
 
-// FIXED: Optimized selectors with proper exports
+// Simple selectors
 export const useCurrentLocale = () => useLocaleStore(state => state.current)
 export const useDirection = () => useLocaleStore(state => state.direction)
 export const useIsRTL = () => useLocaleStore(state => state.direction === 'rtl')
 export const useIsTransitioning = () => useLocaleStore(state => state.isTransitioning)
 export const useLocales = () => useLocaleStore(state => state.locales)
-export const useSetLocaleAsync = () => useLocaleStore(state => state.setLocaleAsync)
 export const useSetLocale = () => useLocaleStore(state => state.setLocale)
+export const useSetLocaleAsync = () => useLocaleStore(state => state.setLocaleAsync)

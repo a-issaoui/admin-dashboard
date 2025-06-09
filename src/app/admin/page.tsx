@@ -10,9 +10,9 @@ import { Icon } from '@/components/icons'
 import type { IconName } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useExpensiveMemo, useRenderPerformance, useIntersectionObserver } from '@/hooks/use-performance'
+import { useRenderPerformance, useIntersectionObserver } from '@/hooks/use-performance'
 
-// FIXED: Proper TypeScript interfaces
+// Proper TypeScript interfaces
 interface StatData {
     title: string
     value: string | number
@@ -27,7 +27,7 @@ interface ActivityData {
     time: string
 }
 
-// OPTIMIZED: Memoized stat card component
+// Memoized stat card component
 const StatCard = React.memo(function StatCard({
                                                   title,
                                                   value,
@@ -57,7 +57,7 @@ const StatCard = React.memo(function StatCard({
     )
 })
 
-// OPTIMIZED: Memoized activity item component
+// Memoized activity item component
 const ActivityItem = React.memo(function ActivityItem({
                                                           color,
                                                           title,
@@ -75,13 +75,13 @@ const ActivityItem = React.memo(function ActivityItem({
 })
 
 export default function AdminPage() {
-    // OPTIMIZED: Monitor render performance
+    // Monitor render performance
     useRenderPerformance('AdminPage')
 
     const t = useTranslations('nav')
 
-    // OPTIMIZED: Memoize stats data to prevent recalculation
-    const statsData = useExpensiveMemo((): StatData[] => [
+    // Memoize stats data to prevent recalculation
+    const statsData = React.useMemo((): StatData[] => [
         {
             title: 'Total Users',
             value: '1,234',
@@ -110,10 +110,10 @@ export default function AdminPage() {
             icon: 'ActivityIcon' as const,
             trend: 'up' as const
         }
-    ], [], 'adminPage-statsData')
+    ], [])
 
-    // OPTIMIZED: Memoize activity data
-    const activityData = useExpensiveMemo((): ActivityData[] => [
+    // Memoize activity data
+    const activityData = React.useMemo((): ActivityData[] => [
         {
             color: 'bg-blue-500',
             title: 'New user registered',
@@ -129,10 +129,10 @@ export default function AdminPage() {
             title: 'Payment pending',
             time: '10 minutes ago'
         }
-    ], [], 'adminPage-activityData')
+    ], [])
 
-    // OPTIMIZED: Memoize header content
-    const headerContent = useExpensiveMemo(() => (
+    // Memoize header content
+    const headerContent = React.useMemo(() => (
         <div className="flex items-center justify-between">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">
@@ -149,22 +149,20 @@ export default function AdminPage() {
         </div>
     ), [t])
 
-    // OPTIMIZED: Memoize stats cards
-    const statsCards = useExpensiveMemo(() =>
+    // Memoize stats cards
+    const statsCards = React.useMemo(() =>
             statsData.map((stat, index) => (
                 <StatCard key={index} {...stat} />
             )),
-        [statsData],
-        'adminPage-statsCards'
+        [statsData]
     )
 
-    // OPTIMIZED: Memoize activity items
-    const activityItems = useExpensiveMemo(() =>
+    // Memoize activity items
+    const activityItems = React.useMemo(() =>
             activityData.map((activity, index) => (
                 <ActivityItem key={index} {...activity} />
             )),
-        [activityData],
-        'adminPage-activityItems'
+        [activityData]
     )
 
     return (
