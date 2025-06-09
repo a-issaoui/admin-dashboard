@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    // Base Options
     "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
@@ -9,29 +8,19 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-
-    // Module Resolution
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-
-    // Path Aliases (Simplified)
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-
-    // Strictness (All strict checks are enabled by this single flag)
     "strict": true,
-
-    // Additional Strictness & Code Quality
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-
-    // Next.js Specific
     "noEmit": true,
     "incremental": true,
     "plugins": [{ "name": "next" }]
