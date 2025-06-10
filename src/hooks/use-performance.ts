@@ -1,103 +1,125 @@
 // ============================================================================
-// src/hooks/use-performance.ts - HMR-SAFE VERSION
+// src/hooks/use-performance.ts - Simplified, HMR-Safe Performance Monitoring
 // ============================================================================
 
 'use client'
 
-import * as React from 'react'
+import { useCallback, useRef, useState } from 'react'
 
-/**
- * Simple debounce hook for value delays
- */
+// Simple performance measurement for critical operations only
+export function usePerformance(componentName: string) {
+    const renderCount = useRef(0)
+    const [metrics, setMetrics] = useState<{ avg: number; count: number }>({ avg: 0, count: 0 })
+
+    const measureOperation = useCallback(<T>(
+        operation: () => T,
+        operationName = 'operation'
+    ): T => {
+        if (process.env.NODE_ENV !== 'production') {
+            return operation() // Skip measurement in development
+        }
+
+        const start = performance.now()
+        const result = operation()
+        const duration = performance.now() - start
+
+        // Only log slow operations (>100ms)
+        if (duration > 100) {
+            console.warn(`Slow ${operationName} in ${componentName}: ${duration.toFixed(2)}ms`)
+        }
+
+        return result
+    }, [componentName])
+
+    const measureAsync = useCallback(async <T>(
+        operation: () => Promise<T>,
+        operationName = 'async-operation'
+    ): Promise<T> => {
+        if (process.env.NODE_ENV !== 'production') {
+            return operation() // Skip measurement in development
+        }
+
+        const start = performance.now()
+        const result = await operation()
+        const duration = performance.now() - start
+
+        // Only log slow operations (>200ms for async)
+        if (duration > 200) {
+            console.warn(`Slow ${operationName} in ${componentName}: ${duration.toFixed(2)}ms`)
+        }
+
+        return result
+    }, [componentName])
+
+    return {
+        measureOperation,
+        measureAsync,
+        renderCount: renderCount.current,
+        metrics
+    }
+}
+
+// Simple debounce hook
 export function useDebounce<T>(value: T, delay: number): T {
-    const [debouncedValue, setDebouncedValue] = React.useState<T>(value)
+    const [debouncedValue, setDebouncedValue] = useState<T>(value)
+    const timeoutRef = useRef<NodeJS.Timeout>()
 
-    React.useEffect(() => {
-        const handler = setTimeout(() => setDebouncedValue(value), delay)
-        return () => clearTimeout(handler)
-    }, [value, delay])
+    useState(() => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+        }
+
+        timeoutRef.current = setTimeout(() => {
+            setDebouncedValue(value)
+        }, delay)
+
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current)
+            }
+        }
+    })
 
     return debouncedValue
 }
 
-/**
- * Throttle hook for limiting function calls
- */
-export function useThrottle<T extends (...args: unknown[]) => unknown>(
-    fn: T,
+// Simple throttle hook
+export function useThrottle<Args extends unknown[], Return>(
+    fn: (...args: Args) => Return,
     delay: number
-): T {
-    const lastCallTime = React.useRef<number>(0)
+): (...args: Args) => Return | undefined {
+    const lastCall = useRef<number>(0)
 
-    return React.useCallback(
-        ((...args: Parameters<T>) => {
-            const now = Date.now()
-            if (now - lastCallTime.current >= delay) {
-                lastCallTime.current = now
-                return fn(...args)
-            }
-        }) as T,
-        [fn, delay]
-    )
+    return useCallback((...args: Args): Return | undefined => {
+        const now = Date.now()
+        if (now - lastCall.current >= delay) {
+            lastCall.current = now
+            return fn(...args)
+        }
+    }, [fn, delay])
 }
 
-/**
- * Intersection observer hook for performance optimization
- */
+// Simple intersection observer for lazy loading
 export function useIntersectionObserver(
-    elementRef: React.RefObject<HTMLElement | null>,
     options: IntersectionObserverInit = {}
 ) {
-    const [isIntersecting, setIsIntersecting] = React.useState(false)
+    const [isIntersecting, setIsIntersecting] = useState(false)
+    const [element, setElement] = useState<Element | null>(null)
 
-    React.useEffect(() => {
-        const element = elementRef.current
-        if (!element) return
+    const observer = useRef<IntersectionObserver>()
 
-        const observer = new IntersectionObserver(
-            ([entry]) => setIsIntersecting(entry?.isIntersecting ?? false),
-            { threshold: 0.1, ...options }
-        )
+    const ref = useCallback((node: Element | null) => {
+        if (observer.current) observer.current.disconnect()
 
-        observer.observe(element)
-        return () => observer.disconnect()
-    }, [elementRef, options])
+        if (node) {
+            observer.current = new IntersectionObserver(
+                ([entry]) => setIsIntersecting(entry?.isIntersecting ?? false),
+                { threshold: 0.1, ...options }
+            )
+            observer.current.observe(node)
+            setElement(node)
+        }
+    }, [options])
 
-    return { isIntersecting }
-}
-
-/**
- * NO-OP performance monitoring for development to avoid HMR issues
- */
-export const useRenderPerformance = () => {
-    // No-op function to avoid HMR issues
-}
-
-/**
- * Simple async performance measurement
- */
-export function useAsyncPerformance(operationName: string) {
-    const measureAsync = React.useCallback(
-        async <T>(operation: () => Promise<T>): Promise<T> => {
-            return operation() // Just run the operation without monitoring
-        },
-        [operationName]
-    )
-
-    return { measureAsync }
-}
-
-/**
- * Simple component performance hook (no-op for HMR safety)
- */
-export function useComponentPerformance(componentName: string) {
-    return {
-        updateCount: 0,
-        measureOperation: React.useCallback(
-            <T>(operation: () => T, operationName?: string): T => {
-                return operation() // Just run the operation
-            },
-            [componentName]
-        )
-    }
+    return { ref, isIntersecting, element }
 }

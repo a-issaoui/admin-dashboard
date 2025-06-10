@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { NextRequest, NextResponse } from 'next/server'
-import { LOCALES, DEFAULT_LOCALE } from '@/i18n/config'
+import { LOCALES, DEFAULT_LOCALE } from '@/stores/i18n/config'
 import type { LocaleCode } from '@/types/locale'
 
 export function middleware(request: NextRequest) {

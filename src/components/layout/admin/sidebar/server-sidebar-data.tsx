@@ -3,8 +3,8 @@
 // ============================================================================
 
 import { headers } from 'next/headers'
-import { sidebarData } from '@/data/sidebar-data'
 import { orgData } from '@/data/org-data'
+import { sidebarData } from '@/data/sidebar-data'
 import { userData } from '@/data/user-data'
 import type { SidebarData } from '@/types/sidebar'
 

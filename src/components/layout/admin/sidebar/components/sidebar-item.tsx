@@ -22,8 +22,8 @@ import {
     SidebarMenuSubItem,
     SidebarMenuSubButton
 } from '@/components/ui/sidebar'
-import { useIsRTL } from '@/lib/stores/locale-store'
-import { useSidebarStore } from '@/lib/stores/sidebar-store'
+import { useIsRTL } from '@/stores/locale-store'
+import { useSidebarStore } from '@/stores/sidebar-store'
 import { cn } from '@/lib/utils'
 import type { SidebarMenuItem as SidebarMenuItemType, SidebarSubmenu, MenuAction, Badge } from '@/types/sidebar'
 import { SidebarActions } from './sidebar-actions'

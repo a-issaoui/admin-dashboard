@@ -1,98 +1,127 @@
 // ============================================================================
-// src/components/error-boundary.tsx - FIXED Error Boundary
+// src/components/error-boundary.tsx - Simplified Error Handling
 // ============================================================================
 
 'use client'
 
-import * as React from 'react'
+import { Component, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AppError } from '@/lib/error-handler'
+import type { AppError } from '@/types'
 
 interface ErrorBoundaryState {
     hasError: boolean
-    error?: Error
-    errorInfo?: React.ErrorInfo
+    error?: AppError
 }
 
 interface ErrorBoundaryProps {
-    children: React.ReactNode
-    fallback?: React.ComponentType<ErrorBoundaryState>
+    children: ReactNode
+    fallback?: (error: AppError, reset: () => void) => ReactNode
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     constructor(props: ErrorBoundaryProps) {
         super(props)
         this.state = { hasError: false }
     }
 
     static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-        return { hasError: true, error }
-    }
-
-    override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-        this.setState({ errorInfo })
-
-        // Log to monitoring service in production
-        if (process.env.NODE_ENV === 'production') {
-            this.logErrorToService(error, errorInfo)
+        return {
+            hasError: true,
+            error: {
+                message: error.message,
+                code: 'REACT_ERROR',
+                statusCode: 500,
+                context: { stack: error.stack }
+            }
         }
     }
 
-    private logErrorToService(error: Error, errorInfo: React.ErrorInfo) {
-        // Implement your preferred error monitoring service
-        console.error('Error logged to monitoring service:', {
-            error: error.message,
-            stack: error.stack,
-            componentStack: errorInfo.componentStack
-        })
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+        // Simple error logging
+        if (process.env.NODE_ENV === 'production') {
+            console.error('Error Boundary caught an error:', {
+                error: error.message,
+                componentStack: errorInfo.componentStack
+            })
+        } else {
+            console.group('🚨 Error Boundary')
+            console.error('Error:', error)
+            console.error('Component Stack:', errorInfo.componentStack)
+            console.groupEnd()
+        }
     }
 
-    override render() {
-        if (this.state.hasError) {
-            const FallbackComponent = this.props.fallback || DefaultErrorFallback
-            return <FallbackComponent {...this.state} />
+    render() {
+        if (this.state.hasError && this.state.error) {
+            const reset = () => this.setState({ hasError: false, error: undefined })
+
+            if (this.props.fallback) {
+                return this.props.fallback(this.state.error, reset)
+            }
+
+            return <DefaultErrorFallback error={this.state.error} onReset={reset} />
         }
 
         return this.props.children
     }
 }
 
-function DefaultErrorFallback({ error, errorInfo }: ErrorBoundaryState) {
-    const isAppError = error instanceof AppError
-    const errorMessage = error?.message || 'An unexpected error occurred'
-
+function DefaultErrorFallback({
+                                  error,
+                                  onReset
+                              }: {
+    error: AppError
+    onReset: () => void
+}) {
     return (
         <div className="flex min-h-screen items-center justify-center p-4">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle>
-                        {isAppError ? 'Application Error' : 'Unexpected Error'}
+                    <CardTitle className="flex items-center gap-2">
+                        <span className="text-destructive">⚠️</span>
+                        Something went wrong
                     </CardTitle>
                     <CardDescription>
-                        {isAppError ? errorMessage : 'An unexpected error occurred. Please try again.'}
+                        An unexpected error occurred. Please try again.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {process.env.NODE_ENV === 'development' && error && (
+                    {process.env.NODE_ENV === 'development' && (
                         <details className="text-sm">
                             <summary className="cursor-pointer font-medium">
-                                Debug Information
+                                Error Details
                             </summary>
-                            <pre className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground overflow-auto max-h-48">
-                                {error.stack}
-                                {errorInfo?.componentStack}
-                            </pre>
+                            <pre className="mt-2 overflow-auto rounded bg-muted p-2 text-xs">
+                {error.message}
+              </pre>
                         </details>
                     )}
-                    <Button
-                        onClick={() => window.location.reload()}
-                        className="w-full"
-                    >
-                        Reload Application
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button onClick={onReset} className="flex-1">
+                            Try Again
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => window.location.reload()}
+                            className="flex-1"
+                        >
+                            Reload Page
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>
     )
+}
+
+// Simple error notification function
+export function showErrorToast(error: AppError | Error | string) {
+    const message = typeof error === 'string'
+        ? error
+        : error.message || 'An error occurred'
+
+    // If you have a toast system, use it here
+    // For now, just console.error
+    console.error('Error:', message)
 }
